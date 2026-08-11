@@ -14,14 +14,18 @@
     justify-content: center;
   }
   img {
-    max-width: 90vw;
-    max-height: 80vh;
+    max-width: 100vw;
+    max-height: 100vh;
     width: auto;
     height: auto;
+    display: block;
   }
 </style>
 </head>
 <body>
-  <img src="birpe-logo.jpg" alt="birpe">
+  <picture>
+    <source media="(max-width: 768px)" srcset="mobile.jpg">
+    <img src="desktop.jpg" alt="birpe">
+  </picture>
 </body>
 </html>
