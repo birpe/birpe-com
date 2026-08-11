@@ -31,8 +31,17 @@
 </head>
 <body>
   <picture>
-    <source media="(max-width: 768px)" srcset="mobile.jpg">
-    <img src="desktop.jpg" alt="birpe">
+    <source media="(max-width: 768px)" srcset="img-9939f1f90c2f.jpg">
+    <img src="img-0073f86b739a.jpg" alt="">
   </picture>
+  <script>
+    document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    document.addEventListener('keydown', function (e) {
+      var k = e.key.toLowerCase();
+      if (k === 'f12') { e.preventDefault(); return; }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (k === 'i' || k === 'j' || k === 'c')) { e.preventDefault(); return; }
+      if ((e.ctrlKey || e.metaKey) && (k === 'u' || (e.altKey && k === 'i'))) { e.preventDefault(); return; }
+    });
+  </script>
 </body>
 </html>
