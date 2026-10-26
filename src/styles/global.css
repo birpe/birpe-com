@@ -63,7 +63,7 @@
 .launch-static h2{color:#142033;-webkit-text-stroke:0;text-shadow:none}
 .launch-static h2 span{color:#2864ed;-webkit-text-stroke:0;text-shadow:none}
 .cloudscape__canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;transition:opacity .45s ease}
-.launch-section.launch-static::before{content:"";position:absolute;z-index:0;left:0;right:0;top:-32svh;height:132svh;pointer-events:none;background:linear-gradient(180deg,rgba(36,72,213,0) 0%,rgba(36,72,213,.18) 8%,rgba(36,72,213,.68) 14%,#2448d5 18%,#2448d5 28%,rgb(96,124,226) 34%,rgb(180,196,240) 40%,#fff 46%,#fff 100%)}
+.launch-section.launch-static::before{content:"";position:absolute;z-index:0;left:0;right:0;top:-18svh;height:118svh;pointer-events:none;background:linear-gradient(180deg,#2448d5 0%,#3156d8 10%,#4a6ce0 22%,#6d8aeb 36%,#96aef3 50%,#c0d0f8 64%,#e4ecfc 78%,#f7f9ff 90%,#fff 100%)}
 [data-slipstream-copy]{position:relative;z-index:1}
 .launch-content{position:relative;z-index:2;text-align:center}
 .launch-section h2{transition:color .55s ease,text-shadow .55s ease}
