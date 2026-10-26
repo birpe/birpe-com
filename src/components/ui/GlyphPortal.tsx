@@ -202,13 +202,19 @@ export default function GlyphPortal({
     };
 
     const position = () => {
-      const origin = root ? root.getBoundingClientRect().top + root.clientTop : 0;
-      return clamp((origin - section.getBoundingClientRect().top) / travel);
+      if (root) return clamp(root.scrollTop / travel);
+      return clamp(-section.getBoundingClientRect().top / travel);
     };
 
+    let painted = -1;
+    let choosingPainted = false;
+    let enteredPainted = false;
+    let hitPainted = true;
     const paint = (progress: number) => {
       const isStatic = motion.matches || !browserFrameSeen || stalled || !target;
-      const p = isStatic ? 0 : progress;
+      const p = isStatic ? 0 : Math.round(progress * 240) / 240;
+      if (p === painted) return;
+      painted = p;
       const t = clamp(p / 0.78);
       const eased = t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2;
       const scale = Math.exp(Math.log(startScale) + Math.log(endScale / startScale) * eased);
@@ -226,16 +232,26 @@ export default function GlyphPortal({
       marks.setAttribute("transform", transform);
       marks.style.opacity = String(1 - smooth(0.015, 0.17, p));
       choosing = interactive && !isStatic && p < .04;
-      choices.inert = !choosing;
-      section.dataset.gpChoosing = String(choosing);
+      if (choosing !== choosingPainted) {
+        choosingPainted = choosing;
+        choices.inert = !choosing;
+        section.dataset.gpChoosing = String(choosing);
+      }
       // Drop the clip only after the camera has already filled the viewport with ink.
       field.style.clipPath = t >= 1 ? "none" : `url(#${clipId})`;
       section.style.setProperty("--gp-caption", String(1 - smooth(0.01, 0.16, p)));
       section.style.setProperty("--gp-reveal", String(isStatic ? 1 : smooth(0.78, 0.9, p)));
       section.style.setProperty("--gp-field-scale", String(1 + .16 * smooth(0, .82, p)));
-      section.style.setProperty("--gp-caption-hit", p < 0.08 ? "auto" : "none");
-      section.dataset.gpEntered = String(p >= 0.9);
-      section.dataset.gpProgress = p.toFixed(5);
+      const entered = p >= 0.9;
+      if (entered !== enteredPainted) {
+        enteredPainted = entered;
+        section.dataset.gpEntered = String(entered);
+      }
+      const hit = p < 0.08;
+      if (hit !== hitPainted) {
+        hitPainted = hit;
+        section.style.setProperty("--gp-caption-hit", hit ? "auto" : "none");
+      }
       if (p !== lastProgress) { lastProgress = p; progressRef.current?.(p); }
     };
 
@@ -350,7 +366,7 @@ export default function GlyphPortal({
         ${q}{--gp-paper:#fff;--gp-ink:#0c1212;--gp-field:#0b3b2a;--gp-foreground:#fbfbfa;position:relative;isolation:isolate;background:var(--gp-paper);color:var(--gp-ink);font-family:Arial,sans-serif;}
         ${q}>[data-gp-viewport]{position:absolute;inset:0 auto auto 0;height:100vh;height:100svh;width:0;pointer-events:none;visibility:hidden;}
         ${q} [data-gp-pin]{position:relative;height:var(--gp-height,100svh);overflow:clip;isolation:isolate;container-type:size;}
-        ${q} [data-gp-field]{position:absolute;inset:0;background:var(--gp-field);opacity:0;pointer-events:none;}
+        ${q} [data-gp-field]{position:absolute;inset:0;background:var(--gp-field);opacity:0;pointer-events:none;will-change:clip-path;transform:translateZ(0);}
         ${q}[data-gp-ready] [data-gp-field]{opacity:1;}
         ${q} [data-gp-art]{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;}
         ${q} [data-gp-marks]{fill:none;stroke:var(--gp-ink);opacity:.6;}

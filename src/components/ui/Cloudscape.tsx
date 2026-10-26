@@ -24,7 +24,7 @@ float noise(vec2 p){
 float fbm(vec2 p,float t){
   float v=0.,a=.5,fi=0.;
   mat2 rot=mat2(.86,.51,-.51,.86);
-  for(int i=0;i<5;i++){
+  for(int i=0;i<3;i++){
     vec2 morph=vec2(sin(t*.5+fi),cos(t*.3-fi))*.05;
     v+=a*noise(p+morph);p=rot*p*2.;a*=.5;fi+=1.;
   }
@@ -81,7 +81,7 @@ export default function Cloudscape({
     const canvas = canvasRef.current;
     const host = hostRef.current;
     if (!canvas || !host) return;
-    const gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth:false, stencil:false });
+    const gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth:false, stencil:false, powerPreference: "high-performance", desynchronized: true });
     if (!gl) return;
     const compile = (type: number, source: string) => {
       const shader = gl.createShader(type);
@@ -123,7 +123,7 @@ export default function Cloudscape({
     const resize = () => {
       const bounds = host.getBoundingClientRect();
       // Soft clouds need no retina-sized buffer; cap GPU work on large screens.
-      const scale = Math.min(1, Math.sqrt(650000 / Math.max(1,bounds.width * bounds.height)));
+      const scale = Math.min(0.7, Math.sqrt(220000 / Math.max(1,bounds.width * bounds.height)));
       canvas.width = Math.max(1, Math.floor(bounds.width * scale));
       canvas.height = Math.max(1, Math.floor(bounds.height * scale));
       gl.viewport(0, 0, canvas.width, canvas.height);
@@ -169,9 +169,21 @@ export default function Cloudscape({
     };
     motionPreference.addEventListener("change", changeMotion);
     document.addEventListener("visibilitychange",resume);
+    // The scroll mask needs the GPU. Pause the clouds while the page is moving.
+    let hold = 0;
+    const holdPaint = () => {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      previous = 0;
+      window.clearTimeout(hold);
+      hold = window.setTimeout(resume, 160);
+    };
+    document.addEventListener("scroll", holdPaint, { capture: true, passive: true });
     return () => {
       motionPreference.removeEventListener("change", changeMotion);
       redraw.current=()=>{};
+      window.clearTimeout(hold);
+      document.removeEventListener("scroll", holdPaint, true);
       cancelAnimationFrame(frame);observer.disconnect();visibility.disconnect();document.removeEventListener("visibilitychange",resume);gl.deleteBuffer(buffer);gl.deleteProgram(program);
       gl.deleteShader(vertex);gl.deleteShader(fragment);
     };
