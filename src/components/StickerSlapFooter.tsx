@@ -334,7 +334,7 @@ const CSS =
   ".ssf-logo{display:block;color:var(--ssf-ink)}" +
   ".ssf-logo svg{height:clamp(24px,2.5cqw,34px);width:auto}" +
   ".ssf-logo path{fill:none;stroke:currentColor;stroke-width:3.3;stroke-linecap:round;stroke-linejoin:round}" +
-  ".ssf-chat{justify-self:end;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;color:var(--ssf-ink);transition:transform .45s cubic-bezier(.2,1.6,.3,1)}" +
+  ".ssf-chat{justify-self:end;display:grid;place-items:center;width:44px;height:44px;min-width:44px;min-height:44px;border-radius:50%;color:var(--ssf-ink);transition:transform .45s cubic-bezier(.2,1.6,.3,1)}" +
   ".ssf-chat svg{width:24px;height:24px}" +
   ".ssf-chat:hover{transform:rotate(-14deg) scale(1.12)}" +
   ".ssf-panel{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;overflow:hidden;overflow:clip;border-radius:clamp(14px,1.8cqw,24px);background:var(--ssf-panel);color:var(--ssf-cream);transform-origin:50% 100%}" +
@@ -371,7 +371,9 @@ const CSS =
   ".ssf-wm{width:100%;height:auto;color:var(--ssf-cream)}" +
   ".ssf-wm path{fill:none;stroke:currentColor;stroke-width:" + STROKE + ";stroke-linecap:round;stroke-linejoin:round}" +
   ".ssf-st{position:absolute;z-index:3;translate:-50% -50%;touch-action:none;user-select:none;-webkit-user-select:none}" +
-  ".ssf-st-btn{display:block;width:100%;cursor:grab;rotate:calc(var(--r) + var(--tilt,0deg));transition:rotate .5s cubic-bezier(.2,1.4,.3,1)}" +
+  ".ssf-st-btn{display:block;width:100%;min-height:44px;cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;rotate:calc(var(--r) + var(--tilt,0deg));transition:rotate .5s cubic-bezier(.2,1.4,.3,1)}" +
+  ".ssf.is-dragging{touch-action:none}" +
+  ".ssf.is-dragging .ssf-panel{overscroll-behavior:contain}" +
   ".ssf-st.is-drag{z-index:9}" +
   ".ssf-st.is-drag .ssf-st-btn{cursor:grabbing;transition:rotate .12s linear}" +
   ".ssf-st-lift{display:block;transition:transform .35s cubic-bezier(.2,1.5,.3,1),filter .35s}" +
@@ -391,7 +393,7 @@ const CSS =
   ".ssf-pop li+li{border-top:1.5px dashed color-mix(in oklab,var(--ssf-ink) 22%,transparent)}" +
   ".ssf-pop b{font-size:11px;font-weight:600;opacity:.6;text-transform:lowercase}" +
   ".ssf-pop strong{font-weight:800;letter-spacing:-.01em}" +
-  "@container (max-width: 760px){.ssf-cols{grid-template-columns:minmax(0,1fr)}.ssf-top{padding-bottom:24px}.ssf-stage{width:min(165%,calc(var(--ssf-wmh) * var(--ssf-ar)));max-width:none;margin-left:-6%}}" +
+  "@container (max-width: 760px){.ssf{min-height:auto;padding-bottom:max(10px,env(safe-area-inset-bottom))}.ssf-top{padding:clamp(12px,3.5cqw,18px) clamp(10px,3cqw,18px) clamp(14px,4cqw,22px)}.ssf-nav{width:clamp(52px,14cqw,68px);height:clamp(40px,11cqw,52px);font-size:clamp(13px,3.6cqw,17px)}.ssf-cols{grid-template-columns:minmax(0,1fr);gap:clamp(14px,4.5cqw,24px);padding:clamp(18px,5cqw,32px) clamp(16px,4cqw,22px) clamp(12px,3.5cqw,20px)}.ssf-big{font-size:clamp(18px,5.2vw,26px)}.ssf-tag{margin-bottom:clamp(10px,2.5cqw,16px)}.ssf-panel{min-height:min(78dvh,680px)}.ssf-stage{width:min(152%,calc(var(--ssf-wmh) * var(--ssf-ar)));max-width:none;margin-left:-4%;padding-bottom:clamp(8px,2.5cqw,14px)}.ssf-st{width:max(var(--ssf-st-w,11cqw),52px)!important}.ssf-credits{bottom:max(12px,env(safe-area-inset-bottom))}.ssf-pop{bottom:auto;top:calc(100% + 8px);transform-origin:90% 0;max-width:min(280px,92cqw)}}" +
   "@keyframes ssf-rewrite{0%{stroke-dashoffset:var(--l,120px)}100%{stroke-dashoffset:0}}" +
   "@keyframes ssf-popin{from{opacity:0;transform:translateY(10px) scale(.7) rotate(4deg)}}" +
   "@media (prefers-reduced-motion: no-preference){" +
@@ -601,6 +603,36 @@ const linkProps = (href?: string) => ({
 
 type Placed = { x: number; y: number }
 
+type DragState = {
+  i: number
+  id: number
+  sx: number
+  sy: number
+  px: number
+  py: number
+  lx: number
+  t: number
+  tilt: number
+  w: number
+  h: number
+  went: boolean
+  host: HTMLElement | null
+  btn: HTMLButtonElement | null
+  scrollLock?: { el: HTMLElement; prev: string }
+}
+
+function useMatchMedia(query: string): boolean {
+  const [match, setMatch] = React.useState(() => typeof window !== "undefined" && window.matchMedia(query).matches)
+  React.useEffect(() => {
+    const mq = window.matchMedia(query)
+    const sync = () => setMatch(mq.matches)
+    sync()
+    mq.addEventListener("change", sync)
+    return () => mq.removeEventListener("change", sync)
+  }, [query])
+  return match
+}
+
 export default function StickerSlapFooter({
   wordmark = "birpe",
   homeHref = "#top",
@@ -621,7 +653,7 @@ export default function StickerSlapFooter({
   socials = DEFAULT_SOCIALS,
   stickers = DEFAULT_STICKERS,
   credits = DEFAULT_CREDITS,
-  height = "100svh",
+  height = "min(100dvh, 920px)",
   wordmarkMaxHeight = "46svh",
   paper = "#f4f8ff",
   panel = "#1859d5",
@@ -641,7 +673,9 @@ export default function StickerSlapFooter({
   const [open, setOpen] = React.useState(false)
   const [moved, setMoved] = React.useState<Record<number, Placed>>({})
   const [order, setOrder] = React.useState<number[]>([])
-  const drag = React.useRef<{ i: number; id: number; sx: number; sy: number; px: number; py: number; lx: number; t: number; tilt: number; w: number; h: number; went: boolean } | null>(null)
+  const drag = React.useRef<DragState | null>(null)
+  const tap = React.useRef<{ i: number; t: number } | null>(null)
+  const narrow = useMatchMedia("(max-width: 760px)")
 
   const word = React.useMemo(() => layoutScript(wordmark), [wordmark])
   const small = word
@@ -777,47 +811,109 @@ export default function StickerSlapFooter({
   const slapFrames: Keyframe[] = [{ transform: "scale(1.14)" }, { transform: "scale(.93,1.04)", offset: 0.4 }, { transform: "scale(1.02,.98)", offset: 0.7 }, { transform: "none" }]
   const shakeFrames: Keyframe[] = [{ transform: "none" }, { transform: "rotate(-14deg) scale(1.1)", offset: 0.3 }, { transform: "rotate(9deg)", offset: 0.6 }, { transform: "none" }]
 
+  const lockScroll = (d: DragState) => {
+    const root = rootRef.current
+    if (!root || d.scrollLock) return
+    const scroller = scrollParent(root)
+    if (scroller instanceof HTMLElement) {
+      d.scrollLock = { el: scroller, prev: scroller.style.overflowY }
+      scroller.style.overflowY = "hidden"
+    }
+    root.classList.add("is-dragging")
+  }
+
+  const unlockScroll = (d: DragState) => {
+    if (d.scrollLock) {
+      d.scrollLock.el.style.overflowY = d.scrollLock.prev
+      d.scrollLock = undefined
+    }
+    rootRef.current?.classList.remove("is-dragging")
+  }
+
+  const finishDrag = (pointerId: number) => {
+    const d = drag.current
+    if (!d || d.id !== pointerId) return
+    drag.current = null
+    d.host?.classList.remove("is-drag")
+    d.host?.style.setProperty("--tilt", "0deg")
+    unlockScroll(d)
+    const lift = d.btn?.querySelector(".ssf-st-lift") ?? null
+    if (d.went && d.host) {
+      putAt(d.i, { x: parseFloat(d.host.style.left), y: parseFloat(d.host.style.top) })
+      wiggle(lift, slapFrames, 420)
+      tap.current = null
+      return
+    }
+    const now = performance.now()
+    if (d.btn && tap.current?.i === d.i && now - tap.current.t < 420) {
+      goHome(d.i, d.btn)
+      tap.current = null
+      return
+    }
+    tap.current = { i: d.i, t: now }
+    wiggle(lift, shakeFrames, 520)
+  }
+
+  React.useEffect(() => {
+    const move = (e: PointerEvent) => {
+      const d = drag.current
+      if (!d || d.id !== e.pointerId || !d.host) return
+      const dx = e.clientX - d.px
+      const dy = e.clientY - d.py
+      const threshold = e.pointerType === "touch" ? 8 : 4
+      if (!d.went && Math.hypot(dx, dy) < threshold) return
+      if (!d.went) {
+        d.went = true
+        d.host.classList.add("is-drag")
+        lockScroll(d)
+        if (e.pointerType === "touch") e.preventDefault()
+      }
+      const x = clamp(d.sx + (dx / d.w) * 100, 1, 99)
+      const y = clamp(d.sy + (dy / d.h) * 100, -70, 96)
+      d.host.style.left = x + "%"
+      d.host.style.top = y + "%"
+      const now = performance.now()
+      const v = (e.clientX - d.lx) / Math.max(1, now - d.t)
+      d.tilt = d.tilt * 0.75 + clamp(v * 22, -24, 24) * 0.25
+      d.lx = e.clientX
+      d.t = now
+      d.host.style.setProperty("--tilt", d.tilt.toFixed(2) + "deg")
+    }
+    const up = (e: PointerEvent) => finishDrag(e.pointerId)
+    document.addEventListener("pointermove", move, { passive: false })
+    document.addEventListener("pointerup", up)
+    document.addEventListener("pointercancel", up)
+    return () => {
+      document.removeEventListener("pointermove", move)
+      document.removeEventListener("pointerup", up)
+      document.removeEventListener("pointercancel", up)
+    }
+  }, [])
+
   const onDown = (e: React.PointerEvent<HTMLButtonElement>, i: number) => {
     if (e.button !== 0 || !stageRef.current) return
     const r = stageRef.current.getBoundingClientRect()
     const at = items[i].at
-    e.currentTarget.setPointerCapture(e.pointerId)
-    drag.current = { i, id: e.pointerId, sx: at.x, sy: at.y, px: e.clientX, py: e.clientY, lx: e.clientX, t: performance.now(), tilt: 0, w: r.width, h: r.height, went: false }
-    raise(i)
-  }
-  const onMove = (e: React.PointerEvent<HTMLButtonElement>) => {
-    const d = drag.current
-    if (!d || d.id !== e.pointerId) return
-    const dx = e.clientX - d.px
-    const dy = e.clientY - d.py
-    if (!d.went && Math.hypot(dx, dy) < 4) return
     const host = e.currentTarget.parentElement
     if (!host) return
-    if (!d.went) host.classList.add("is-drag")
-    d.went = true
-    const x = clamp(d.sx + (dx / d.w) * 100, 1, 99)
-    const y = clamp(d.sy + (dy / d.h) * 100, -70, 96)
-    host.style.left = x + "%"
-    host.style.top = y + "%"
-    const now = performance.now()
-    const v = (e.clientX - d.lx) / Math.max(1, now - d.t)
-    d.tilt = d.tilt * 0.75 + clamp(v * 22, -24, 24) * 0.25
-    d.lx = e.clientX
-    d.t = now
-    host.style.setProperty("--tilt", d.tilt.toFixed(2) + "deg")
-  }
-  const onUp = (e: React.PointerEvent<HTMLButtonElement>) => {
-    const d = drag.current
-    if (!d || d.id !== e.pointerId) return
-    drag.current = null
-    const host = e.currentTarget.parentElement
-    host?.classList.remove("is-drag")
-    host?.style.setProperty("--tilt", "0deg")
-    const lift = e.currentTarget.querySelector(".ssf-st-lift")
-    if (d.went && host) {
-      putAt(d.i, { x: parseFloat(host.style.left), y: parseFloat(host.style.top) })
-      wiggle(lift, slapFrames, 420)
-    } else wiggle(lift, shakeFrames, 520)
+    e.currentTarget.setPointerCapture(e.pointerId)
+    drag.current = {
+      i,
+      id: e.pointerId,
+      sx: at.x,
+      sy: at.y,
+      px: e.clientX,
+      py: e.clientY,
+      lx: e.clientX,
+      t: performance.now(),
+      tilt: 0,
+      w: r.width,
+      h: r.height,
+      went: false,
+      host,
+      btn: e.currentTarget,
+    }
+    raise(i)
   }
   const onKey = (e: React.KeyboardEvent<HTMLButtonElement>, i: number) => {
     const step = e.shiftKey ? 6 : 2
@@ -854,9 +950,9 @@ export default function StickerSlapFooter({
     "--ssf-cream": cream ?? paper,
     "--ssf-accent": accent,
     "--ssf-sans": fontSans,
-    "--ssf-wmh": wordmarkMaxHeight,
+    "--ssf-wmh": narrow ? "min(34dvh, 250px)" : wordmarkMaxHeight,
     "--ssf-ar": String(round(vbW / cutH)),
-    minHeight: height,
+    minHeight: narrow ? "auto" : height,
   } as React.CSSProperties
 
   const onPointer = (e: React.PointerEvent<HTMLElement>) => {
@@ -1019,6 +1115,7 @@ export default function StickerSlapFooter({
                   {
                     left: s.at.x + "%",
                     top: s.at.y + "%",
+                    "--ssf-st-w": round(s.size) + "cqw",
                     width: "max(" + round(s.size) + "cqw, 46px)",
                     zIndex: 3 + Math.max(0, order.indexOf(s.i) + 1),
                     "--r": s.rotate + "deg",
@@ -1030,11 +1127,8 @@ export default function StickerSlapFooter({
                 <button
                   type="button"
                   className="ssf-st-btn"
-                  aria-label={s.label + ". Drag, or use the arrow keys, to move it. Escape puts it back."}
+                  aria-label={s.label + ". Drag to move. Double-tap or Escape sends it home. Arrow keys nudge it."}
                   onPointerDown={(e) => onDown(e, s.i)}
-                  onPointerMove={onMove}
-                  onPointerUp={onUp}
-                  onPointerCancel={onUp}
                   onDoubleClick={(e) => goHome(s.i, e.currentTarget)}
                   onKeyDown={(e) => onKey(e, s.i)}
                 >
