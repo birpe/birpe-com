@@ -1,5 +1,6 @@
 [data-slipstream-demo] [data-gp-caption] {
-  inset: calc(var(--gp-word-bottom, 50%) + 28px) 24px auto;
+  inset: auto 24px max(16px, env(safe-area-inset-bottom));
+  top: min(calc(var(--gp-word-bottom, 50%) + 24px), calc(100% - 76px));
   justify-content: center;
 }
 
@@ -47,14 +48,14 @@
 
 [data-sublime-header] {
   position: absolute;
-  top: clamp(24px, 4.5cqw, 48px);
+  top: max(16px, env(safe-area-inset-top));
   left: 50%;
-  width: min(82%, 1000px);
+  width: min(88%, 1000px);
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: clamp(12px, 3cqw, 24px);
 }
 
 [data-sublime-category] {
@@ -64,7 +65,7 @@
 }
 
 [data-slipstream-demo] [data-gp-content] {
-  padding: 5.5rem clamp(1.25rem, 5cqw, 5rem) 6.5rem;
+  padding: clamp(2.75rem, 8svh, 5.5rem) clamp(1.25rem, 5cqw, 4.5rem) clamp(3rem, 10svh, 6rem);
   font-family: inherit;
 }
 
@@ -79,14 +80,14 @@
   margin: auto;
   flex-direction: column;
   align-items: flex-start;
-  gap: clamp(2rem, 5svh, 3.5rem);
+  gap: clamp(1.5rem, 4svh, 3rem);
 }
 
 [data-slipstream-copy] h2 {
   max-width: 48rem;
   margin: 0;
   color: inherit;
-  font-size: clamp(1.75rem, 1.1rem + 2.1cqw, 2.25rem);
+  font-size: clamp(1.75rem, 1.05rem + 2.4cqw, 3.75rem);
   font-weight: 400;
   line-height: 1.25;
   letter-spacing: 0;
@@ -133,32 +134,33 @@
 @container (max-width: 450px) {
   [data-sublime-header] {
     width: calc(100% - 32px);
+    align-items: flex-start;
   }
 
   [data-sublime-category] {
-    max-width: 12ch;
+    max-width: 14ch;
     text-align: right;
     font-size: 12px;
   }
 
-  [data-slipstream-demo] [data-gp-caption] {
-    top: calc(var(--gp-word-bottom, 50%) + 22px);
+  [data-slipstream-features] {
+    gap: 1.25rem;
   }
 }
 
 @container (max-height: 479px) {
   [data-sublime-header] {
-    top: 18px;
+    top: max(12px, env(safe-area-inset-top));
   }
 
   [data-slipstream-demo] [data-gp-caption] {
-    top: calc(var(--gp-word-bottom, 50%) + 18px);
+    top: min(calc(var(--gp-word-bottom, 50%) + 12px), calc(100% - 64px));
   }
 }
 
-@container (min-width: 768px) {
+@container (min-width: 960px) {
   [data-slipstream-features] {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 3.5rem;
+    gap: clamp(1.5rem, 3cqw, 2.75rem);
   }
 }

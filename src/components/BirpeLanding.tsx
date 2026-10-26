@@ -24,7 +24,7 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
   }, []);
   return (
     <main onPointerMove={event=>{if(event.pointerType==='touch'||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;const node=bird.current;if(node){node.style.setProperty('--bird-x',`${(event.clientX/window.innerWidth-.5)*12}px`);node.style.setProperty('--bird-y',`${(event.clientY/window.innerHeight-.5)*10}px`);}}} data-demo-scroll data-slipstream-demo tabIndex={0} aria-label="Birpe AI. Scroll into a lighter day."
-      style={{ width: "100%", height: "100svh", overflowY: "auto", background: "#fff", containerType: "inline-size", fontFamily: "Arial, sans-serif" }}>
+      style={{ width: "100%", height: "100svh", overflowX: "clip", overflowY: "auto", background: "#fff", containerType: "inline-size", fontFamily: "Arial, sans-serif" }}>
       <h1 className="sr-only">Birpe AI — Your everyday AI agent</h1>
       <LiquidGlassFilter />
       {face ? <GlyphPortal word={s.word} fontFamily={face} fontWeight={500} style={{ fontFamily: "Arial, sans-serif", "--gp-field": "#1859d5", "--gp-ink": "#142033", "--gp-foreground": "#ffffff" }} backdrop={<Cloudscape colorBottom="#a8d9fb" colorMid="#e5f4ff" colorTop="#ffffff" speed={1.26} height="100%" />} background={<div className="birpe-field" />} scrollLength={s.scrollLength} interactive={s.interactive} annotations={s.annotations} enterLabel="Scroll here" enterInteractive={false} front={

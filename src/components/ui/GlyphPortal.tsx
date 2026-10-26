@@ -251,8 +251,9 @@ export default function GlyphPortal({
       art.setAttribute("viewBox", `0 0 ${W} ${H}`);
       if (fontDirty) { ready = readInk(); fontDirty = false; }
       if (!ready) return;
-      const wordHeight = hasFront && H < 480 ? Math.min(H * .38, Math.max(24, H - 264)) : H * .38;
-      startScale = Math.min(W * 0.84 / bounds.width, wordHeight / bounds.height);
+      const wordHeight = hasFront && H < 480 ? Math.min(H * .34, Math.max(24, H - 280)) : H * .36;
+      const widthRatio = W < 520 ? 0.74 : W < 900 ? 0.8 : 0.86;
+      startScale = Math.min(W * widthRatio / bounds.width, wordHeight / bounds.height);
       // The whole viewport fits inside measured ink, even with the small camera bank.
       select(target);
       for (const button of buttons) {
