@@ -682,7 +682,7 @@ export default function StickerSlapFooter({
   const cutH = CUT - vbY
 
   const spots = React.useMemo(() => stickerSpots(word, stickers.length, 3), [word, stickers.length])
-  const drawDur = clamp(0.7 + word.width / 45, 1.1, 2.6)
+  const drawDur = clamp(1.3 + word.width / 28, 2.4, 4.6)
   const writeAt = 1.05
   const toPct = (s: Spot) => ({ x: ((s.x - s.y * SLANT - vbX) / vbW) * 100, y: ((s.y - vbY) / vbH) * 100 })
 
