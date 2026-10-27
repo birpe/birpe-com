@@ -248,9 +248,9 @@ export interface StickerSlapFooterProps {
 }
 
 const DEFAULT_JOBS: Job[] = [
-  { title: "Turn a messy list into one clear next step" },
-  { title: "Get the gist without reading every page" },
-  { title: "Hand off small chores and keep your headspace" },
+  { title: "One clear next step" },
+  { title: "Just the gist" },
+  { title: "Small chores, handled" },
 ]
 const DEFAULT_SOCIALS: Social[] = []
 const DEFAULT_STICKERS: StickerSpec[] = [
@@ -638,13 +638,13 @@ export default function StickerSlapFooter({
   jobsLabel = "Everyday help",
   jobs = DEFAULT_JOBS,
   officeLabel = "Why Birpe",
-  address = ["An agent for ordinary days—not another dashboard.", "Calm, capable, and easy to reach when you need it."],
+  address = ["For ordinary days.", "Calm and easy to reach."],
   mapLabel = "Back to the sky",
   mapHref = "#top",
   contactLabel = "What's next",
   email = "",
   copiedLabel = "Copied, talk soon!",
-  note = "We're finishing the first version. When Birpe opens, you'll meet it right here.",
+  note = "Opening soon.",
   socials = DEFAULT_SOCIALS,
   stickers = DEFAULT_STICKERS,
   credits = [],
