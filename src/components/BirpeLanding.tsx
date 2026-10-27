@@ -3,6 +3,7 @@ import Cloudscape from "@/components/ui/Cloudscape";
 import GlyphPortal from "@/components/ui/GlyphPortal";
 import { LiquidGlassFilter, LiquidGlassLink } from "@/components/ui/LiquidGlass";
 import UniqueLoading from "@/components/ui/morph-loading";
+import { BIRPE_STROKES, BIRPE_STROKE_RADIUS } from "@/components/ui/birpe-strokes";
 import StickerSlapFooter from "@/components/StickerSlapFooter";
 import "@/styles/landing.css";
 
@@ -53,7 +54,7 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
       style={{ width: "100%", height: "100svh", overflowX: "clip", overflowY: "auto", background: "#fff", containerType: "inline-size", fontFamily: "Arial, sans-serif", WebkitOverflowScrolling: "touch" }}>
       <h1 className="sr-only">Birpe — Your everyday AI agent</h1>
       <LiquidGlassFilter />
-      {face ? <GlyphPortal word={s.word} fontFamily={face} fontWeight={500} style={{ fontFamily: "Arial, sans-serif", "--gp-field": "#1859d5", "--gp-ink": "#142033", "--gp-foreground": "#ffffff" }} backdrop={<Cloudscape colorBottom="#a8d9fb" colorMid="#e5f4ff" colorTop="#ffffff" speed={1.26} height="100%" />} background={<div className="birpe-field" />} scrollLength={s.scrollLength} interactive={s.interactive} annotations={s.annotations} enterLabel="Scroll here" enterInteractive={false} front={
+      {face ? <GlyphPortal word={s.word} fontFamily={face} fontWeight={500} write={face === family ? BIRPE_STROKES : undefined} writeRadius={BIRPE_STROKE_RADIUS}style={{ fontFamily: "Arial, sans-serif", "--gp-field": "#1859d5", "--gp-ink": "#142033", "--gp-foreground": "#ffffff" }} backdrop={<Cloudscape colorBottom="#a8d9fb" colorMid="#e5f4ff" colorTop="#ffffff" speed={1.26} height="100%" />} background={<div className="birpe-field" />} scrollLength={s.scrollLength} interactive={s.interactive} annotations={s.annotations} enterLabel="Scroll here" enterInteractive={false} front={
           <div data-sublime-header><button ref={bird} className="bird-guide" aria-label="Give the bird a little lift" onClick={()=>{if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;bird.current?.animate([{translate:'0 0',rotate:'0deg'},{translate:'9px -15px',rotate:'-10deg'},{translate:'0 0',rotate:'0deg'}],{duration:600,easing:'ease-in-out'});}}><span className="header-bird"><img src="/assets/images/bird-logo.png" alt="" /></span></button><span data-sublime-category>Your everyday AI agent</span></div>
         }>
         <div data-slipstream-copy>

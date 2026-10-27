@@ -37,13 +37,34 @@ export type GlyphPortalProps = {
   style?: GlyphPortalStyle;
   /** Called once per rendered scroll frame, never through React state. */
   onProgress?: (progress: number) => void;
+  /** Pen centerlines per character. When every character has one, the word writes itself in on mount. */
+  write?: GlyphStrokes;
+  /** Round pen radius in font units at size 100. It must cover the thickest stroke. */
+  writeRadius?: number;
 };
+
+/** Centerlines at font-size 100, baseline 0, x from the glyph origin. `lift` strokes follow every main stroke. */
+export type GlyphStrokes = Record<string, { main: string; lift?: string }>;
 
 const clamp = (n: number, a = 0, b = 1) => Math.min(b, Math.max(a, n));
 const smooth = (a: number, b: number, n: number) => {
   const t = clamp((n - a) / (b - a));
   return t * t * (3 - 2 * t);
 };
+/** CSS cubic-bezier(x1, y1, x2, y2) as a function of time in [0, 1]. */
+const bezier = (x1: number, y1: number, x2: number, y2: number) => {
+  const at = (a: number, b: number, t: number) => 3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3;
+  return (x: number) => {
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    let lo = 0, hi = 1;
+    for (let i = 0; i < 24; i++) { const t = (lo + hi) / 2; if (at(x1, x2, t) < x) lo = t; else hi = t; }
+    return at(y1, y2, (lo + hi) / 2);
+  };
+};
+// Pen timing matches the footer wordmark's ssf-write.
+const penEase = bezier(.55, .1, .35, 1);
+const WRITE_AT = .3, LIFT_DUR = .28, LIFT_GAP = .16, PEN_STEP = 1.5;
 const DEFAULT_FONT = '"Arial Black", "Arial", sans-serif';
 type Ink = { x: number; y: number; radius: number; index: number };
 type Letter = { index: number; x: number; y: number; width: number; height: number };
@@ -91,10 +112,11 @@ function scrollParent(element: HTMLElement): HTMLElement | null {
 export default function GlyphPortal({
   word = "SUBLIME", focusChar, interactive = true, background, front, backdrop, children, scrollLength = 2.4,
   fontFamily = DEFAULT_FONT, fontWeight = 900, annotations = false,
-  enterLabel = "Enter section", enterInteractive = true, className, style, onProgress,
+  enterLabel = "Enter section", enterInteractive = true, className, style, onProgress, write, writeRadius = 6,
 }: GlyphPortalProps) {
   const uid = `gp-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const clipId = `${uid}-clip`;
+  const brushId = `${uid}-brush`;
   const sectionRef = useRef<HTMLElement>(null);
   const progressRef = useRef(onProgress);
   useLayoutEffect(() => { progressRef.current = onProgress; }, [onProgress]);
@@ -130,7 +152,7 @@ export default function GlyphPortal({
     let W = 1, H = 1, travel = 1, startScale = 1, endScale = 1;
     let center = { x: 0, y: 0 }, target: Ink | null = null;
     let lastProgress = -1;
-    let candidates: Ink[] = [], letters: Letter[] = [];
+    let candidates: Ink[] = [], letters: Letter[] = [], origins: number[] = [];
     let choosing = false;
     let bounds = { x: 0, y: 0, width: 1, height: 1 };
     let fontDirty = true;
@@ -155,6 +177,7 @@ export default function GlyphPortal({
       context.fontKerning = "none";
       const metrics = context.measureText(text);
       const advances = Array.from({ length: text.length }, (_, i) => context.measureText(text.slice(0, i)).width);
+      origins = advances;
       // SVG getBBox includes the font's line box in some engines. Frame visible ink instead.
       bounds = { x: -metrics.actualBoundingBoxLeft, y: -metrics.actualBoundingBoxAscent,
         width: metrics.actualBoundingBoxLeft + metrics.actualBoundingBoxRight,
@@ -288,14 +311,84 @@ export default function GlyphPortal({
 
     };
 
+    // Writing: a round pen grows a second clip (the brush) along each letter's
+    // centerline, so the real glyphs appear stroke by stroke. The brush lives in
+    // the glyph's own space and rides along with the camera transforms.
+    const brush = section.querySelector<SVGPathElement>("[data-gp-brush]");
+    let writing = false, writeRaf = 0, writeTimer = 0, writeStart = -1, writeDur = 0, laid = 0, brushD = "";
+    let penMain: number[][] = [], penLifts: { points: number[][]; laid: number }[] = [];
+    const dot = ([x, y]: number[]) => {
+      const r = writeRadius;
+      return `M${x - r} ${y}a${r} ${r} 0 1 0 ${r * 2} 0a${r} ${r} 0 1 0 ${-r * 2} 0`;
+    };
+    const trace = (d: string, dx: number) => {
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", d);
+      const total = path.getTotalLength();
+      const points: number[][] = [];
+      for (let at = 0; at < total + PEN_STEP; at += PEN_STEP) {
+        const p = path.getPointAtLength(Math.min(at, total));
+        points.push([Math.round((p.x + dx) * 100) / 100, Math.round(p.y * 100) / 100]);
+      }
+      return points;
+    };
+    const prepareWrite = () => {
+      if (!write || !brush || motion.matches) return false;
+      const chars = Array.from(text);
+      if (!chars.every((char) => write[char])) return false;
+      let offset = 0;
+      penMain = []; penLifts = [];
+      for (const char of chars) {
+        const { main, lift } = write[char];
+        penMain.push(...trace(main, origins[offset]));
+        if (lift) penLifts.push({ points: trace(lift, origins[offset]), laid: 0 });
+        offset += char.length;
+      }
+      writeDur = clamp(.9 + chars.length * .48, 2.4, 4.6);
+      return true;
+    };
+    const finishWrite = () => {
+      if (!writing) return;
+      writing = false;
+      cancelAnimationFrame(writeRaf); writeRaf = 0;
+      clearTimeout(writeTimer);
+      glyph.removeAttribute("clip-path");
+      brush?.setAttribute("d", "");
+    };
+    const lay = (points: number[][], from: number, to: number) => {
+      for (let i = from; i < to; i++) brushD += dot(points[i]);
+    };
+    const pen = (now: number) => {
+      writeRaf = 0;
+      if (!writing || disposed) return;
+      if (writeStart < 0) writeStart = now;
+      const s = (now - writeStart) / 1000 - WRITE_AT;
+      const main = Math.ceil(penEase(clamp(s / writeDur)) * penMain.length);
+      lay(penMain, laid, main); laid = main;
+      penLifts.forEach((lift, k) => {
+        const n = Math.ceil(penEase(clamp((s - writeDur - k * LIFT_GAP) / LIFT_DUR)) * lift.points.length);
+        lay(lift.points, lift.laid, n); lift.laid = n;
+      });
+      brush!.setAttribute("d", brushD);
+      if (s >= writeDur + Math.max(0, penLifts.length - 1) * LIFT_GAP + LIFT_DUR) finishWrite();
+      else writeRaf = requestAnimationFrame(pen);
+    };
+
     const frame = (time?: number) => {
       raf = 0;
       if (disposed) return;
       if (time !== undefined && !browserFrameSeen) {
         browserFrameSeen = true; stalled ||= performance.now() - mountedAt > 2500; dirty = true;
+        // Write only when the browser renders promptly; otherwise show the word as is.
+        if (writing && !writeRaf) { if (stalled) finishWrite(); else writeRaf = requestAnimationFrame(pen); }
       }
       if (dirty) { dirty = false; layout(); }
-      if (ready) paint(position());
+      if (ready) {
+        const progress = position();
+        // Scrolling, or switching to reduced motion, finishes the word at once.
+        if (writing && (progress > .01 || motion.matches)) finishWrite();
+        paint(progress);
+      }
     };
     const schedule = () => { if (!raf && active) raf = requestAnimationFrame(frame); };
     const resize = () => { cancelAnimationFrame(raf); dirty = true; frame(); };
@@ -339,11 +432,20 @@ export default function GlyphPortal({
     window.visualViewport?.addEventListener("resize", resize);
     motion.addEventListener("change", resize);
     frame();
+    // Clip the word to an empty brush before the first paint, so it never flashes in whole.
+    if (ready && position() <= .01 && prepareWrite()) {
+      writing = true;
+      brush!.setAttribute("d", "");
+      glyph.setAttribute("clip-path", `url(#${brushId})`);
+      // If the pen never gets a frame, show the word rather than leave it blank.
+      writeTimer = window.setTimeout(() => { if (writeStart < 0) finishWrite(); }, 3000);
+    }
     // WebKit can withhold frames, timers and scroll events behind an initial hung font.
     // Begin in reading flow. Enable motion only when the browser starts rendering promptly.
     schedule();
     return () => {
       disposed = true;
+      finishWrite();
       cancelAnimationFrame(raf);
       observer.disconnect();
       visibility.disconnect();
@@ -357,7 +459,7 @@ export default function GlyphPortal({
       choices.removeEventListener("keydown", navigate);
       picker.removeEventListener("change", pick);
     };
-  }, [text, focusChar, interactive, fontFamily, weight, length, clipId, hasFront]);
+  }, [text, focusChar, interactive, fontFamily, weight, length, clipId, hasFront, write, writeRadius, brushId]);
 
   return (
     <section ref={sectionRef} id={uid} className={className} aria-label={text}
@@ -418,6 +520,7 @@ export default function GlyphPortal({
             <clipPath id={clipId} clipPathUnits="userSpaceOnUse">
               <text data-gp-glyph x="0" y="0" style={{ fontFamily, fontWeight: weight, fontSize: 100, fontKerning: "none", fontVariantLigatures: "none", letterSpacing: 0, stroke: "black", strokeWidth: .65, paintOrder: "stroke fill" }}>{text}</text>
             </clipPath>
+            {write && <clipPath id={brushId} clipPathUnits="userSpaceOnUse"><path data-gp-brush /></clipPath>}
           </defs>
           <g data-gp-marks style={{ visibility: annotations ? "visible" : "hidden" }}><path /></g>
         </svg>
