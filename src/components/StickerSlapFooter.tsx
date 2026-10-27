@@ -320,7 +320,7 @@ const CSS =
   ".ssf :focus-visible{outline:2.5px solid var(--ssf-accent);outline-offset:3px;border-radius:6px}" +
   ".ssf-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}" +
   ".ssf-panel{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;overflow:hidden;overflow:clip;border-radius:clamp(14px,1.8cqw,24px);background:var(--ssf-panel);color:var(--ssf-cream);transform-origin:50% 100%}" +
-  ".ssf-cols{position:relative;z-index:2;display:grid;grid-template-columns:repeat(var(--ssf-n,3),minmax(0,1fr));gap:clamp(22px,3cqw,44px) clamp(16px,2.4cqw,36px);padding:clamp(26px,5.4cqw,72px) clamp(18px,1.8cqw,26px) clamp(20px,3cqw,40px)}" +
+  ".ssf-cols{position:relative;z-index:2;display:grid;grid-template-columns:repeat(var(--ssf-n,3),minmax(0,1fr));gap:clamp(16px,2.4cqw,32px) clamp(14px,2cqw,28px);padding:clamp(18px,3.2cqw,44px) clamp(18px,1.8cqw,26px) clamp(14px,2.2cqw,28px)}" +
   ".ssf-col{display:flex;flex-direction:column;align-items:flex-start;min-width:0}" +
   ".ssf-tag{display:inline-block;margin-bottom:clamp(14px,1.6cqw,22px);padding:.28em .72em .32em;border-radius:999px;background:var(--ssf-cream);color:var(--ssf-ink);font-size:clamp(12px,1.05cqw,14px);font-weight:600;line-height:1.2;letter-spacing:-.005em}" +
   ".ssf-big{font-size:clamp(19px,2.1cqw,30px);font-weight:800;line-height:1.16;letter-spacing:-.022em}" +
@@ -375,7 +375,7 @@ const CSS =
   ".ssf-pop li+li{border-top:1.5px dashed color-mix(in oklab,var(--ssf-ink) 22%,transparent)}" +
   ".ssf-pop b{font-size:11px;font-weight:600;opacity:.6;text-transform:lowercase}" +
   ".ssf-pop strong{font-weight:800;letter-spacing:-.01em}" +
-  "@container (max-width: 760px){.ssf{min-height:auto;padding-bottom:max(10px,env(safe-area-inset-bottom))}.ssf-cols{grid-template-columns:minmax(0,1fr);gap:clamp(14px,4.5cqw,24px);padding:clamp(18px,5cqw,32px) clamp(16px,4cqw,22px) clamp(12px,3.5cqw,20px)}.ssf-big{font-size:clamp(18px,5.2vw,26px)}.ssf-tag{margin-bottom:clamp(10px,2.5cqw,16px)}.ssf-panel{min-height:min(78dvh,680px)}.ssf-stage{width:min(152%,calc(var(--ssf-wmh) * var(--ssf-ar)));max-width:none;margin-left:-4%;padding-bottom:clamp(8px,2.5cqw,14px)}.ssf-st{width:max(var(--ssf-st-w,11cqw),52px)!important}.ssf-credits{bottom:max(12px,env(safe-area-inset-bottom))}.ssf-pop{bottom:auto;top:calc(100% + 8px);transform-origin:90% 0;max-width:min(280px,92cqw)}}" +
+  "@container (max-width: 760px){.ssf{min-height:auto;padding-bottom:max(10px,env(safe-area-inset-bottom))}.ssf-cols{grid-template-columns:minmax(0,1fr);gap:clamp(12px,3.5cqw,20px);padding:clamp(14px,4cqw,24px) clamp(16px,4cqw,22px) clamp(10px,2.8cqw,16px)}.ssf-big{font-size:clamp(18px,5.2vw,26px)}.ssf-tag{margin-bottom:clamp(8px,2cqw,14px)}.ssf-panel{min-height:min(52dvh,480px)}.ssf-stage{width:min(142%,calc(var(--ssf-wmh) * var(--ssf-ar)));max-width:none;margin-left:-4%;padding-bottom:clamp(4px,1.5cqw,10px)}.ssf-st{width:max(var(--ssf-st-w,11cqw),52px)!important}.ssf-credits{bottom:max(12px,env(safe-area-inset-bottom))}.ssf-pop{bottom:auto;top:calc(100% + 8px);transform-origin:90% 0;max-width:min(280px,92cqw)}}" +
   "@keyframes ssf-rewrite{0%{stroke-dashoffset:var(--l,120px)}100%{stroke-dashoffset:0}}" +
   "@keyframes ssf-popin{from{opacity:0;transform:translateY(10px) scale(.7) rotate(4deg)}}" +
   "@media (prefers-reduced-motion: no-preference){" +
@@ -628,8 +628,8 @@ export default function StickerSlapFooter({
   socials = DEFAULT_SOCIALS,
   stickers = DEFAULT_STICKERS,
   credits = [],
-  height = "min(100dvh, 920px)",
-  wordmarkMaxHeight = "46svh",
+  height = "min(62dvh, 600px)",
+  wordmarkMaxHeight = "28svh",
   paper = "#f4f8ff",
   panel = "#1859d5",
   ink = "#142033",
@@ -923,7 +923,7 @@ export default function StickerSlapFooter({
     "--ssf-cream": cream ?? paper,
     "--ssf-accent": accent,
     "--ssf-sans": fontSans,
-    "--ssf-wmh": narrow ? "min(34dvh, 250px)" : wordmarkMaxHeight,
+    "--ssf-wmh": narrow ? "min(26dvh, 200px)" : wordmarkMaxHeight,
     "--ssf-ar": String(round(vbW / cutH)),
     minHeight: narrow ? "auto" : height,
   } as React.CSSProperties
