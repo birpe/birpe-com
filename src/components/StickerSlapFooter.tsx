@@ -311,7 +311,7 @@ const ICONS: Record<SocialKind, React.ReactNode> = {
 }
 
 const CSS =
-  ".ssf{position:relative;isolation:isolate;overflow:hidden;overflow:clip;container-type:inline-size;display:flex;flex-direction:column;width:100%;box-sizing:border-box;padding:0 clamp(6px,.9cqw,12px) clamp(6px,.9cqw,12px);background:var(--ssf-paper);color:var(--ssf-ink);font-family:var(--ssf-sans);font-weight:500;-webkit-font-smoothing:antialiased}" +
+  ".ssf{position:relative;isolation:isolate;overflow:hidden;overflow:clip;container-type:inline-size;display:flex;flex-direction:column;width:100%;box-sizing:border-box;margin-top:clamp(40px,6vh,80px);padding:0 clamp(6px,.9cqw,12px) clamp(6px,.9cqw,12px);background:var(--ssf-paper);color:var(--ssf-ink);font-family:var(--ssf-sans);font-weight:500;-webkit-font-smoothing:antialiased}" +
   ":where(.ssf) *,:where(.ssf) *::before,:where(.ssf) *::after{box-sizing:border-box}" +
   ":where(.ssf) button{appearance:none;background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer}" +
   ":where(.ssf) a{color:inherit;text-decoration:none}" +
@@ -377,7 +377,7 @@ const CSS =
   ".ssf-pop b{font-size:11px;font-weight:600;opacity:.6;text-transform:lowercase}" +
   ".ssf-pop strong{font-weight:800;letter-spacing:-.01em}" +
   "@container (max-width: 760px){.ssf-cols{grid-template-columns:minmax(0,1fr)}.ssf-st{width:max(var(--ssf-st-w,11cqw),48px)!important}}" +
-  ".ssf--narrow{min-height:auto;padding:0 max(6px,env(safe-area-inset-left)) max(8px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-right))}" +
+  ".ssf--narrow{min-height:auto;margin-top:clamp(32px,8vw,56px);padding:0 max(6px,env(safe-area-inset-left)) max(8px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-right))}" +
   ".ssf--narrow .ssf-panel{min-height:auto;overflow:clip;padding-bottom:0;border-radius:clamp(16px,4.5vw,22px)}" +
   ".ssf--narrow .ssf-cols{gap:0;padding:clamp(16px,4.5vw,22px) clamp(14px,4vw,20px) clamp(10px,3vw,14px)}" +
   ".ssf--narrow .ssf-col{width:100%;align-items:stretch}" +
