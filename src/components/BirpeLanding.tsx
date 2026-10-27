@@ -2,11 +2,14 @@ import { useEffect, useState, useRef } from "react";
 import Cloudscape from "@/components/ui/Cloudscape";
 import GlyphPortal from "@/components/ui/GlyphPortal";
 import { LiquidGlassFilter, LiquidGlassLink } from "@/components/ui/LiquidGlass";
+import UniqueLoading from "@/components/ui/morph-loading";
 import StickerSlapFooter from "@/components/StickerSlapFooter";
 import "@/styles/landing.css";
 
 const settings = { word: "birpe", scrollLength: 2.4, interactive: true, annotations: false };
 const family = '"Birpe Rounded", Arial, sans-serif';
+/** Keep the intro loader visible long enough to read the motion, even when the font is cached. */
+const MIN_LOADER_MS = 3500;
 let fontLoad: Promise<void> | undefined;
 
 export default function BirpeLanding(props: Partial<typeof settings>) {
@@ -14,14 +17,35 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
   const bird = useRef<HTMLButtonElement>(null);
   const [face, setFace] = useState<string | null>(null);
   useEffect(() => {
-    let settled = false;
-    const finish = (value: string) => { if (!settled) { settled = true; setFace(value); } };
+    let cancelled = false;
+    const timers: number[] = [];
     // Load the local brand face before mounting the scroll-driven word artwork.
     fontLoad ??= new FontFace("Birpe Rounded", 'url("/assets/fonts/birpe-rounded.ttf")', { weight: "500" })
       .load().then((font) => { document.fonts.add(font); });
-    const timeout = window.setTimeout(() => finish("Arial, sans-serif"), 1600);
-    void fontLoad.then(() => finish(family), () => finish("Arial, sans-serif"));
-    return () => { settled = true; clearTimeout(timeout); };
+
+    const faceReady = new Promise<string>((resolve) => {
+      let settled = false;
+      const finish = (value: string) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+      timers.push(window.setTimeout(() => finish("Arial, sans-serif"), 1600));
+      void fontLoad!.then(() => finish(family), () => finish("Arial, sans-serif"));
+    });
+
+    const minLoader = new Promise<void>((resolve) => {
+      timers.push(window.setTimeout(resolve, MIN_LOADER_MS));
+    });
+
+    void Promise.all([faceReady, minLoader]).then(([value]) => {
+      if (!cancelled) setFace(value);
+    });
+
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
   }, []);
   return (
     <main onPointerMove={event=>{if(event.pointerType==='touch'||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;const node=bird.current;if(node){node.style.setProperty('--bird-x',`${(event.clientX/window.innerWidth-.5)*12}px`);node.style.setProperty('--bird-y',`${(event.clientY/window.innerHeight-.5)*10}px`);}}} data-demo-scroll data-slipstream-demo tabIndex={0} aria-label="Birpe. Scroll into a lighter day."
@@ -43,7 +67,7 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
             <div data-slipstream-feature><h3><span data-slipstream-no>03</span>Take back your time</h3><p>Bring a little ease to everyday tasks. Save your energy for the things that matter.</p></div>
           </div>
         </div>
-      </GlyphPortal> : <div role="status" style={{ height: "100%", display: "grid", placeItems: "center", color: "#555", fontSize: 12 }}>Loading type…</div>}
+      </GlyphPortal> : <div style={{ height: "100%", display: "grid", placeItems: "center" }}><UniqueLoading variant="morph" size="lg" /></div>}
       {face && <StickerSlapFooter />}
     </main>
   );
