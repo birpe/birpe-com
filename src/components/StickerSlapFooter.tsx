@@ -347,7 +347,7 @@ const CSS =
   ".ssf-soc svg *{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}" +
   ".ssf-soc .ssf-dot{stroke-width:2.8}" +
   ".ssf-soc:hover,.ssf-soc:focus-visible{background:var(--ssf-cream);color:var(--ssf-panel);box-shadow:inset 0 0 0 1.5px var(--ssf-cream);transform:translateY(-3px) rotate(-8deg)}" +
-  ".ssf-stage{position:relative;z-index:1;margin-top:auto;width:min(100%,calc(var(--ssf-wmh) * var(--ssf-ar)));align-self:center;padding:0 clamp(6px,.8cqw,12px)}" +
+  ".ssf-stage{position:relative;z-index:1;margin-top:auto;width:min(100%,calc(var(--ssf-wmh) * var(--ssf-ar,3.2)));align-self:stretch;padding:0}" +
   ".ssf-stage-in{position:relative;container-type:inline-size}" +
   ".ssf-wm-btn{display:block;width:100%;border-radius:0 !important;cursor:pointer;-webkit-tap-highlight-color:transparent}" +
   ".ssf-wm{width:100%;height:auto;color:var(--ssf-cream)}" +
@@ -376,8 +376,8 @@ const CSS =
   ".ssf-pop b{font-size:11px;font-weight:600;opacity:.6;text-transform:lowercase}" +
   ".ssf-pop strong{font-weight:800;letter-spacing:-.01em}" +
   "@container (max-width: 760px){.ssf-cols{grid-template-columns:minmax(0,1fr)}.ssf-st{width:max(var(--ssf-st-w,11cqw),48px)!important}}" +
-  ".ssf--narrow{min-height:auto;padding:0 max(8px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-right))}" +
-  ".ssf--narrow .ssf-panel{min-height:auto;overflow-x:clip;overflow-y:visible;padding-bottom:max(6px,env(safe-area-inset-bottom))}" +
+  ".ssf--narrow{min-height:auto;padding:0 max(6px,env(safe-area-inset-left)) max(8px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-right))}" +
+  ".ssf--narrow .ssf-panel{min-height:auto;overflow:clip;padding-bottom:0;border-radius:clamp(16px,4.5vw,22px)}" +
   ".ssf--narrow .ssf-cols{gap:0;padding:clamp(16px,4.5vw,22px) clamp(14px,4vw,20px) clamp(10px,3vw,14px)}" +
   ".ssf--narrow .ssf-col{width:100%;align-items:stretch}" +
   ".ssf--narrow .ssf-col+.ssf-col{margin-top:clamp(16px,4vw,22px);padding-top:clamp(16px,4vw,22px);border-top:1px solid color-mix(in oklab,var(--ssf-cream) 22%,transparent)}" +
@@ -388,9 +388,10 @@ const CSS =
   ".ssf--narrow .ssf-line>*{display:block;max-width:100%;white-space:normal;overflow-wrap:anywhere;text-wrap:pretty}" +
   ".ssf--narrow .ssf-map{margin-top:clamp(12px,3vw,18px);font-size:clamp(13px,3.8vw,16px)}" +
   ".ssf--narrow .ssf-note{max-width:none;font-size:clamp(12px,3.4vw,14px);line-height:1.5;margin-top:clamp(10px,2.8vw,14px)}" +
-  ".ssf--narrow .ssf-stage{width:100%;max-width:100%;margin:clamp(6px,2vw,12px) 0 0;padding:0 clamp(2px,1vw,8px) clamp(12px,3vw,18px);align-self:stretch}" +
+  ".ssf--narrow .ssf-stage{width:100%;max-width:100%;margin:clamp(12px,3.5vw,20px) 0 0;padding:0;align-self:stretch}" +
   ".ssf--narrow .ssf-stage-in{transform:none!important}" +
-  ".ssf--narrow .ssf-st{max-width:min(22vw,72px)}" +
+  ".ssf--narrow .ssf-wm{display:block}" +
+  ".ssf--narrow .ssf-st{max-width:min(20vw,64px)}" +
   ".ssf--narrow .ssf-st-btn{min-height:48px}" +
   ".ssf--narrow .ssf-credits{bottom:max(12px,env(safe-area-inset-bottom))}" +
   ".ssf--narrow .ssf-pop{bottom:auto;top:calc(100% + 8px);transform-origin:90% 0;max-width:min(280px,92cqw)}" +
@@ -632,7 +633,7 @@ function useMatchMedia(query: string): boolean {
 
 export default function StickerSlapFooter({
   wordmark = "birpe",
-  chatHref = "#launching-soon",
+  chatHref = "",
   chatLabel = "See what's launching",
   jobsLabel = "Everyday help",
   jobs = DEFAULT_JOBS,
@@ -648,7 +649,7 @@ export default function StickerSlapFooter({
   stickers = DEFAULT_STICKERS,
   credits = [],
   height = "min(62dvh, 600px)",
-  wordmarkMaxHeight = "28svh",
+  wordmarkMaxHeight = "72svh",
   paper = "#f4f8ff",
   panel = "#1859d5",
   ink = "#142033",
@@ -942,7 +943,7 @@ export default function StickerSlapFooter({
     "--ssf-cream": cream ?? paper,
     "--ssf-accent": accent,
     "--ssf-sans": fontSans,
-    "--ssf-wmh": narrow ? "min(20dvh, 168px)" : wordmarkMaxHeight,
+    "--ssf-wmh": wordmarkMaxHeight,
     "--ssf-ar": String(round(vbW / cutH)),
     minHeight: narrow ? "auto" : height,
   } as React.CSSProperties
@@ -995,7 +996,7 @@ export default function StickerSlapFooter({
         )}
       </div>,
     )
-  if (email || chatHref || socials.length)
+  if (email || chatHref || note || socials.length)
     cols.push(
       <div className="ssf-col" key="contact">
         <h3 className="ssf-tag">{contactLabel}</h3>
@@ -1042,6 +1043,7 @@ export default function StickerSlapFooter({
   return (
     <footer
       ref={rootRef}
+      id="footer"
       className={"ssf" + (seen ? " is-in" : "") + (narrow ? " ssf--narrow" : "") + (className ? " " + className : "")}
       style={style}
       onPointerMove={onPointer}
@@ -1062,7 +1064,7 @@ export default function StickerSlapFooter({
           <div
             className="ssf-stage-in"
             ref={stageRef}
-            style={{ marginBottom: round(-((vbH - cutH) / vbW) * 100 * (narrow ? 0.5 : 1)) + "%" }}
+            style={{ marginBottom: round(-((vbH - cutH) / vbW) * 100) + "%" }}
           >
             <button type="button" className="ssf-wm-btn" onClick={replay} aria-label={"Write " + wordmark + " again"}>
               <svg key={run} className="ssf-wm" viewBox={[vbX, vbY, vbW, vbH].map(round).join(" ")} aria-hidden="true" focusable="false">

@@ -34,7 +34,7 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
         }>
         <div data-slipstream-copy>
           <h2>Less on your mind. More room for life.</h2>
-          <LiquidGlassLink className="try-example-link" href="#launching-soon">
+          <LiquidGlassLink className="try-example-link" href="#footer">
             Coming soon <span aria-hidden="true">↓</span>
           </LiquidGlassLink>
           <div data-slipstream-features>
@@ -44,7 +44,6 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
           </div>
         </div>
       </GlyphPortal> : <div role="status" style={{ height: "100%", display: "grid", placeItems: "center", color: "#555", fontSize: 12 }}>Loading type…</div>}
-      {face && <section id="launching-soon" className="launch-section launch-static" aria-labelledby="launch-title"><span className="launch-bird"><img src="/assets/images/bird-logo.png" alt="" /></span><div className="launch-content"><h2 id="launch-title">Launching soon<br/><span>to help you more.</span></h2></div></section>}
       {face && <StickerSlapFooter />}
     </main>
   );
