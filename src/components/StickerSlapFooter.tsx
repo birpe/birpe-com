@@ -261,12 +261,6 @@ const DEFAULT_STICKERS: StickerSpec[] = [
   { kind: "bubble", text: "life" },
   "daisy",
 ]
-const DEFAULT_CREDITS: Credit[] = [
-  { role: "Birpe", name: "Your everyday AI agent" },
-  { role: "Promise", name: "Less on your mind. More room for life." },
-  { role: "Launch", name: "Soon, to help you more" },
-]
-
 const LABELS: Record<StickerKind, string> = {
   burst: "Birpe burst sticker",
   smiley: "Smiley sticker",
@@ -633,7 +627,7 @@ export default function StickerSlapFooter({
   note = "Launching soon to help you more.",
   socials = DEFAULT_SOCIALS,
   stickers = DEFAULT_STICKERS,
-  credits = DEFAULT_CREDITS,
+  credits = [],
   height = "min(100dvh, 920px)",
   wordmarkMaxHeight = "46svh",
   paper = "#f4f8ff",
