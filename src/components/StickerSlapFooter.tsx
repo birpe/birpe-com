@@ -248,9 +248,9 @@ export interface StickerSlapFooterProps {
 }
 
 const DEFAULT_JOBS: Job[] = [
-  { title: "Find your focus" },
-  { title: "Make sense of more" },
-  { title: "Take back your time" },
+  { title: "Turn a messy list into one clear next step" },
+  { title: "Get the gist without reading every page" },
+  { title: "Hand off small chores and keep your headspace" },
 ]
 const DEFAULT_SOCIALS: Social[] = []
 const DEFAULT_STICKERS: StickerSpec[] = [
@@ -614,17 +614,17 @@ function useMatchMedia(query: string): boolean {
 export default function StickerSlapFooter({
   wordmark = "birpe",
   chatHref = "#launching-soon",
-  chatLabel = "Coming soon",
-  jobsLabel = "A lighter day",
+  chatLabel = "See what's launching",
+  jobsLabel = "Everyday help",
   jobs = DEFAULT_JOBS,
-  officeLabel = "Birpe",
-  address = ["Less on your mind.", "More room for life."],
-  mapLabel = "Launching soon",
-  mapHref = "#launching-soon",
-  contactLabel = "Soon",
+  officeLabel = "Why Birpe",
+  address = ["An agent for ordinary days—not another dashboard.", "Calm, capable, and easy to reach when you need it."],
+  mapLabel = "Back to the sky",
+  mapHref = "#top",
+  contactLabel = "What's next",
   email = "",
   copiedLabel = "Copied, talk soon!",
-  note = "Launching soon to help you more.",
+  note = "We're finishing the first version. When Birpe opens, you'll meet it right here.",
   socials = DEFAULT_SOCIALS,
   stickers = DEFAULT_STICKERS,
   credits = [],
