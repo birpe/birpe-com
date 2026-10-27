@@ -323,8 +323,9 @@ const CSS =
   ".ssf-cols{position:relative;z-index:2;display:grid;grid-template-columns:repeat(var(--ssf-n,3),minmax(0,1fr));gap:clamp(16px,2.4cqw,32px) clamp(14px,2cqw,28px);padding:clamp(18px,3.2cqw,44px) clamp(18px,1.8cqw,26px) clamp(14px,2.2cqw,28px)}" +
   ".ssf-col{display:flex;flex-direction:column;align-items:flex-start;min-width:0}" +
   ".ssf-tag{display:inline-block;margin-bottom:clamp(14px,1.6cqw,22px);padding:.28em .72em .32em;border-radius:999px;background:var(--ssf-cream);color:var(--ssf-ink);font-size:clamp(12px,1.05cqw,14px);font-weight:600;line-height:1.2;letter-spacing:-.005em}" +
-  ".ssf-big{font-size:clamp(19px,2.1cqw,30px);font-weight:800;line-height:1.16;letter-spacing:-.022em}" +
-  ".ssf-line{display:block;overflow:hidden;overflow:clip;padding:0 .08em .06em;margin:0 -.08em -.06em}" +
+  ".ssf-big{font-size:clamp(19px,2.1cqw,30px);font-weight:800;line-height:1.25;letter-spacing:-.022em}" +
+  ".ssf-line{display:block;overflow:hidden;overflow:clip;padding:.02em .08em .2em;margin:0 -.08em .42em}" +
+  ".ssf-line:last-child{margin-bottom:0}" +
   ".ssf-line>*{display:inline-block}" +
   ".ssf-big a,.ssf-big button{position:relative;text-align:left;transition:color .2s}" +
   ".ssf-big a::after,.ssf-big button::after{content:'';position:absolute;left:0;right:0;bottom:-.02em;height:.09em;border-radius:1em;background:currentColor;transform:scaleX(0);transform-origin:100% 50%;transition:transform .45s cubic-bezier(.6,0,.2,1)}" +
@@ -382,8 +383,8 @@ const CSS =
   ".ssf--narrow .ssf-col{width:100%;align-items:stretch}" +
   ".ssf--narrow .ssf-col+.ssf-col{margin-top:clamp(16px,4vw,22px);padding-top:clamp(16px,4vw,22px);border-top:1px solid color-mix(in oklab,var(--ssf-cream) 22%,transparent)}" +
   ".ssf--narrow .ssf-tag{margin-bottom:clamp(10px,2.8vw,14px)}" +
-  ".ssf--narrow .ssf-big{font-size:clamp(16px,4.6vw,21px);line-height:1.28;letter-spacing:-.018em}" +
-  ".ssf--narrow .ssf-line{overflow:visible;margin:0 0 .45em;padding:0}" +
+  ".ssf--narrow .ssf-big{font-size:clamp(16px,4.6vw,21px);line-height:1.35;letter-spacing:-.018em}" +
+  ".ssf--narrow .ssf-line{overflow:visible;margin:0 0 .55em;padding:.02em 0 .12em}" +
   ".ssf--narrow .ssf-line:last-child{margin-bottom:0}" +
   ".ssf--narrow .ssf-line>*{display:block;max-width:100%;white-space:normal;overflow-wrap:anywhere;text-wrap:pretty}" +
   ".ssf--narrow .ssf-map{margin-top:clamp(12px,3vw,18px);font-size:clamp(13px,3.8vw,16px)}" +
