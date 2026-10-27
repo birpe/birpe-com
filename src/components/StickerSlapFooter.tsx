@@ -202,12 +202,12 @@ export type Credit = { role: string; name: string }
 export interface StickerSlapFooterProps {
   /** The giant script wordmark. Letters a–z, `!` and `.`; anything else is a space. */
   wordmark?: string
-  /** Where the small wordmark in the top bar points. */
+  /** @deprecated Top bar removed; kept for API compatibility. */
   homeHref?: string
-  /** The starburst link in the top-left corner. `""` hides it. */
+  /** @deprecated Top bar removed; kept for API compatibility. */
   navLabel?: string
   navHref?: string
-  /** Messaging link: the top-right bubble and the contact line. `""` hides both. */
+  /** Messaging link in the contact column. `""` hides it. */
   chatHref?: string
   chatLabel?: string
   jobsLabel?: string
@@ -325,18 +325,6 @@ const CSS =
   ".ssf svg{display:block;max-width:none;overflow:visible}" +
   ".ssf :focus-visible{outline:2.5px solid var(--ssf-accent);outline-offset:3px;border-radius:6px}" +
   ".ssf-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}" +
-  ".ssf-top{position:relative;z-index:2;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:clamp(14px,2cqw,26px) clamp(10px,1.6cqw,22px) clamp(24px,5cqw,80px)}" +
-  ".ssf-nav{justify-self:start;position:relative;display:grid;place-items:center;width:clamp(58px,6.2cqw,80px);height:clamp(42px,4.4cqw,56px);font-weight:800;font-size:clamp(15px,1.6cqw,20px);letter-spacing:-.02em;color:var(--ssf-ink)}" +
-  ".ssf-nav svg{position:absolute;left:-6%;top:-14%;width:72%;height:auto;color:var(--ssf-accent);transition:transform .7s cubic-bezier(.2,1.4,.3,1)}" +
-  ".ssf-nav span{position:relative;transition:transform .4s cubic-bezier(.2,1.6,.3,1)}" +
-  ".ssf-nav:hover svg{transform:rotate(72deg) scale(1.12)}" +
-  ".ssf-nav:hover span{transform:rotate(-6deg) scale(1.06)}" +
-  ".ssf-logo{display:block;color:var(--ssf-ink)}" +
-  ".ssf-logo svg{height:clamp(24px,2.5cqw,34px);width:auto}" +
-  ".ssf-logo path{fill:none;stroke:currentColor;stroke-width:3.3;stroke-linecap:round;stroke-linejoin:round}" +
-  ".ssf-chat{justify-self:end;display:grid;place-items:center;width:44px;height:44px;min-width:44px;min-height:44px;border-radius:50%;color:var(--ssf-ink);transition:transform .45s cubic-bezier(.2,1.6,.3,1)}" +
-  ".ssf-chat svg{width:24px;height:24px}" +
-  ".ssf-chat:hover{transform:rotate(-14deg) scale(1.12)}" +
   ".ssf-panel{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;overflow:hidden;overflow:clip;border-radius:clamp(14px,1.8cqw,24px);background:var(--ssf-panel);color:var(--ssf-cream);transform-origin:50% 100%}" +
   ".ssf-cols{position:relative;z-index:2;display:grid;grid-template-columns:repeat(var(--ssf-n,3),minmax(0,1fr));gap:clamp(22px,3cqw,44px) clamp(16px,2.4cqw,36px);padding:clamp(26px,5.4cqw,72px) clamp(18px,1.8cqw,26px) clamp(20px,3cqw,40px)}" +
   ".ssf-col{display:flex;flex-direction:column;align-items:flex-start;min-width:0}" +
@@ -393,7 +381,7 @@ const CSS =
   ".ssf-pop li+li{border-top:1.5px dashed color-mix(in oklab,var(--ssf-ink) 22%,transparent)}" +
   ".ssf-pop b{font-size:11px;font-weight:600;opacity:.6;text-transform:lowercase}" +
   ".ssf-pop strong{font-weight:800;letter-spacing:-.01em}" +
-  "@container (max-width: 760px){.ssf{min-height:auto;padding-bottom:max(10px,env(safe-area-inset-bottom))}.ssf-top{padding:clamp(12px,3.5cqw,18px) clamp(10px,3cqw,18px) clamp(14px,4cqw,22px)}.ssf-nav{width:clamp(52px,14cqw,68px);height:clamp(40px,11cqw,52px);font-size:clamp(13px,3.6cqw,17px)}.ssf-cols{grid-template-columns:minmax(0,1fr);gap:clamp(14px,4.5cqw,24px);padding:clamp(18px,5cqw,32px) clamp(16px,4cqw,22px) clamp(12px,3.5cqw,20px)}.ssf-big{font-size:clamp(18px,5.2vw,26px)}.ssf-tag{margin-bottom:clamp(10px,2.5cqw,16px)}.ssf-panel{min-height:min(78dvh,680px)}.ssf-stage{width:min(152%,calc(var(--ssf-wmh) * var(--ssf-ar)));max-width:none;margin-left:-4%;padding-bottom:clamp(8px,2.5cqw,14px)}.ssf-st{width:max(var(--ssf-st-w,11cqw),52px)!important}.ssf-credits{bottom:max(12px,env(safe-area-inset-bottom))}.ssf-pop{bottom:auto;top:calc(100% + 8px);transform-origin:90% 0;max-width:min(280px,92cqw)}}" +
+  "@container (max-width: 760px){.ssf{min-height:auto;padding-bottom:max(10px,env(safe-area-inset-bottom))}.ssf-cols{grid-template-columns:minmax(0,1fr);gap:clamp(14px,4.5cqw,24px);padding:clamp(18px,5cqw,32px) clamp(16px,4cqw,22px) clamp(12px,3.5cqw,20px)}.ssf-big{font-size:clamp(18px,5.2vw,26px)}.ssf-tag{margin-bottom:clamp(10px,2.5cqw,16px)}.ssf-panel{min-height:min(78dvh,680px)}.ssf-stage{width:min(152%,calc(var(--ssf-wmh) * var(--ssf-ar)));max-width:none;margin-left:-4%;padding-bottom:clamp(8px,2.5cqw,14px)}.ssf-st{width:max(var(--ssf-st-w,11cqw),52px)!important}.ssf-credits{bottom:max(12px,env(safe-area-inset-bottom))}.ssf-pop{bottom:auto;top:calc(100% + 8px);transform-origin:90% 0;max-width:min(280px,92cqw)}}" +
   "@keyframes ssf-rewrite{0%{stroke-dashoffset:var(--l,120px)}100%{stroke-dashoffset:0}}" +
   "@keyframes ssf-popin{from{opacity:0;transform:translateY(10px) scale(.7) rotate(4deg)}}" +
   "@media (prefers-reduced-motion: no-preference){" +
@@ -401,9 +389,7 @@ const CSS =
   ".ssf-stage-in{transform:translateY(calc((1 - var(--ssf-sp,1)) * 18%))}" +
   ".ssf-st{transform:translate(calc(var(--ssf-px,0) * var(--d) * 9px),calc(var(--ssf-py,0) * var(--d) * 6px));transition:transform .7s cubic-bezier(.2,.8,.2,1)}" +
   ".ssf-st.is-drag{transition:none}" +
-  ".ssf:not(.is-in) .ssf-top>*,.ssf:not(.is-in) .ssf-tag,.ssf:not(.is-in) .ssf-line>*,.ssf:not(.is-in) .ssf-map,.ssf:not(.is-in) .ssf-note,.ssf:not(.is-in) .ssf-soc,.ssf:not(.is-in) .ssf-pill{opacity:0}" +
-  ".ssf.is-in .ssf-top>*{animation:ssf-fall .8s cubic-bezier(.2,1.3,.3,1) both}" +
-  ".ssf.is-in .ssf-top>:nth-child(2){animation-delay:.08s}.ssf.is-in .ssf-top>:nth-child(3){animation-delay:.16s}" +
+  ".ssf:not(.is-in) .ssf-tag,.ssf:not(.is-in) .ssf-line>*,.ssf:not(.is-in) .ssf-map,.ssf:not(.is-in) .ssf-note,.ssf:not(.is-in) .ssf-soc,.ssf:not(.is-in) .ssf-pill{opacity:0}" +
   ".ssf.is-in .ssf-panel{animation:ssf-grow 1.1s cubic-bezier(.7,0,.2,1) both}" +
   ".ssf.is-in .ssf-tag{animation:ssf-pop .7s cubic-bezier(.2,1.7,.3,1) both;animation-delay:calc(.45s + var(--c) * .1s)}" +
   ".ssf.is-in .ssf-line>*{animation:ssf-rise .8s cubic-bezier(.2,.9,.2,1) both;animation-delay:calc(.55s + var(--c) * .1s + var(--i) * .07s)}" +
@@ -416,8 +402,6 @@ const CSS =
   ".ssf:not(.is-in) .ssf-st-slap{opacity:0}" +
   ".ssf.is-in .ssf-st-slap{animation:ssf-slap .62s var(--at) cubic-bezier(.3,1.5,.4,1) both}" +
   ".ssf.is-in .ssf-ring{animation:ssf-ring .7s var(--at) cubic-bezier(.2,.8,.2,1) both}" +
-  ".ssf-logo:hover path{animation:ssf-rewrite 1.1s cubic-bezier(.55,.1,.35,1)}" +
-  ".ssf-logo path{stroke-dasharray:var(--l,3000px) calc(var(--l,3000px) + 8px)}" +
   ".ssf-st-btn:active .ssf-st-lift{transform:translateY(-6%) scale(1.1)}" +
   "}" +
   "@keyframes ssf-write{0%{stroke-dashoffset:calc(var(--l,3000px) + 4px);visibility:visible}100%{stroke-dashoffset:0;visibility:visible}}" +
@@ -635,9 +619,6 @@ function useMatchMedia(query: string): boolean {
 
 export default function StickerSlapFooter({
   wordmark = "birpe",
-  homeHref = "#top",
-  navLabel = "soon",
-  navHref = "#launching-soon",
   chatHref = "#launching-soon",
   chatLabel = "Coming soon",
   jobsLabel = "A lighter day",
@@ -678,14 +659,12 @@ export default function StickerSlapFooter({
   const narrow = useMatchMedia("(max-width: 760px)")
 
   const word = React.useMemo(() => layoutScript(wordmark), [wordmark])
-  const small = word
   const pad = STROKE / 2 + 0.6
   const vbX = -1.4 - pad
   const vbY = word.top - pad
   const vbW = Math.max(word.width, 1) + 2.8 + pad * 2 - word.top * SLANT
   const vbH = word.bottom + pad - vbY
   const cutH = CUT - vbY
-  const smallVb = [-pad - 1, small.top - pad, Math.max(small.width, 1) + pad * 2 + 2 - small.top * SLANT, -small.top + pad * 2 + 1].map(round).join(" ")
 
   const spots = React.useMemo(() => stickerSpots(word, stickers.length, 3), [word, stickers.length])
   const drawDur = clamp(0.7 + word.width / 45, 1.1, 2.6)
@@ -1056,34 +1035,6 @@ export default function StickerSlapFooter({
       onPointerLeave={onLeave}
     >
       <style>{CSS}</style>
-
-      <div className="ssf-top">
-        {navLabel ? (
-          <a className="ssf-nav" {...linkProps(navHref)}>
-            <svg viewBox="-50 -50 100 100" aria-hidden="true" focusable="false">
-              <path d={starPath(11, 48, 30, 0, 0, 0.3, 7)} fill="currentColor" />
-            </svg>
-            <span>{navLabel}</span>
-          </a>
-        ) : (
-          <span />
-        )}
-        <a className="ssf-logo" {...linkProps(homeHref)} aria-label={wordmark + ", home"}>
-          <svg viewBox={smallVb} aria-hidden="true" focusable="false">
-            <path d={small.main + small.extra.join("")} data-draw="" transform="skewX(-9)" />
-          </svg>
-        </a>
-        {chatHref ? (
-          <a className="ssf-chat" {...linkProps(chatHref)} aria-label={chatLabel || "Message us"}>
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M12 2.6A9.4 9.4 0 0 0 3.9 16.8L2.7 21.3L7.3 20.1A9.4 9.4 0 1 0 12 2.6Z" fill="currentColor" />
-              <path d="M8.6 7.6C9.2 7.2 9.7 7.4 10 8L10.6 9.5C10.8 10 10.5 10.4 10.1 10.8C10.8 12.2 11.8 13.2 13.2 13.9C13.6 13.5 14 13.2 14.5 13.4L16 14C16.6 14.3 16.8 14.8 16.4 15.4C15.7 16.4 14.6 16.8 13.4 16.3C10.6 15.2 8.8 13.4 7.7 10.6C7.2 9.4 7.6 8.3 8.6 7.6Z" fill="var(--ssf-paper)" />
-            </svg>
-          </a>
-        ) : (
-          <span />
-        )}
-      </div>
 
       <div className="ssf-panel">
         {cols.length > 0 && (
