@@ -51,6 +51,7 @@
   top: max(16px, env(safe-area-inset-top));
   left: 50%;
   width: min(88%, 1000px);
+  max-width: calc(100% - max(32px, env(safe-area-inset-left) + env(safe-area-inset-right)));
   transform: translateX(-50%);
   display: flex;
   align-items: center;
@@ -65,7 +66,8 @@
 }
 
 [data-slipstream-demo] [data-gp-content] {
-  padding: clamp(2.75rem, 8svh, 5.5rem) clamp(1.25rem, 5cqw, 4.5rem) clamp(3rem, 10svh, 6rem);
+  padding: clamp(2.75rem, 8svh, 5.5rem) max(clamp(1.25rem, 5cqw, 4.5rem), env(safe-area-inset-right)) clamp(3rem, 10svh, 6rem) max(clamp(1.25rem, 5cqw, 4.5rem), env(safe-area-inset-left));
+  padding-bottom: max(clamp(3rem, 10svh, 6rem), calc(3rem + env(safe-area-inset-bottom)));
   font-family: inherit;
 }
 

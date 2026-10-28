@@ -1,12 +1,11 @@
 import React from "react";
-import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 
-type LiquidGlassLinkProps = Omit<HTMLMotionProps<"a">,"children"> & {
+type LiquidGlassLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   children?: React.ReactNode;
   tone?: "light" | "dark";
 };
 
-type LiquidGlassButtonProps = Omit<HTMLMotionProps<"button">,"children"> & {
+type LiquidGlassButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   children?: React.ReactNode;
   tone?: "light" | "dark";
 };
@@ -88,16 +87,10 @@ export function LiquidGlassLink({
   tone = "dark",
   ...props
 }: LiquidGlassLinkProps) {
-  const reduced = useReducedMotion();
   return (
-    <motion.a
-      {...props}
-      whileHover={reduced ? undefined : { y:-2 }} whileTap={reduced ? undefined : { scale:.97 }}
-      transition={{ type:"spring", stiffness:380, damping:30 }}
-      className={`liquid-glass liquid-glass--${tone} ${className}`.trim()}
-    >
+    <a {...props} className={`liquid-glass liquid-glass--${tone} ${className}`.trim()}>
       <GlassLayers>{children}</GlassLayers>
-    </motion.a>
+    </a>
   );
 }
 
@@ -108,11 +101,10 @@ export function LiquidGlassButton({
   type = "button",
   ...props
 }: LiquidGlassButtonProps) {
-  const reduced = useReducedMotion();
   return (
-    <motion.button {...props} whileHover={reduced ? undefined : { y:-2 }} whileTap={reduced ? undefined : { scale:.97 }} transition={{ type:"spring", stiffness:380, damping:30 }} type={type} className={`liquid-glass liquid-glass--${tone} ${className}`.trim()}>
+    <button {...props} type={type} className={`liquid-glass liquid-glass--${tone} ${className}`.trim()}>
       <GlassLayers>{children}</GlassLayers>
-    </motion.button>
+    </button>
   );
 }
 

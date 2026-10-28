@@ -1,6 +1,6 @@
 # Birpe
 
-Birpe is a React, TypeScript, Tailwind CSS, and Framer Motion landing page.
+Birpe is a React, TypeScript, and Tailwind CSS landing page.
 
 ## Commands
 
