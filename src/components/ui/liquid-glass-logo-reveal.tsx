@@ -1006,8 +1006,8 @@ function startEngine(
         canvas.height = h
       }
       const shortest = Math.min(cw, ch)
-      // Phones keep a small mark. The 1.75 fit is for wider layouts, then tileSize caps it.
-      const fit = shortest < 768 ? Math.min(148, shortest * 0.34) : shortest / 1.75
+      // On a phone the magnified frame was still nearly half the screen. Keep the mark small there.
+      const fit = shortest < 768 ? Math.min(84, shortest * 0.2) : shortest / 1.75
       const tile = Math.min(P.tileSize, fit)
       renderer.render(frameAt(Math.min(time, end), P, outro), w, h, tile * dpr)
       dirty = false
