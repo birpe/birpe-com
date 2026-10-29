@@ -1005,7 +1005,10 @@ function startEngine(
         canvas.width = w
         canvas.height = h
       }
-      const tile = Math.min(P.tileSize, Math.min(cw, ch) / 1.75)
+      const shortest = Math.min(cw, ch)
+      // Phones keep a small mark. The 1.75 fit is for wider layouts, then tileSize caps it.
+      const fit = shortest < 768 ? Math.min(148, shortest * 0.34) : shortest / 1.75
+      const tile = Math.min(P.tileSize, fit)
       renderer.render(frameAt(Math.min(time, end), P, outro), w, h, tile * dpr)
       dirty = false
     }
