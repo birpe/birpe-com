@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import Cloudscape from "@/components/ui/Cloudscape";
 import GlyphPortal from "@/components/ui/GlyphPortal";
 import { LiquidGlassFilter, LiquidGlassLink } from "@/components/ui/LiquidGlass";
-import UniqueLoading from "@/components/ui/morph-loading";
+import { GlassIconReveal } from "@/components/ui/liquid-glass-logo-reveal";
 import StickerSlapFooter from "@/components/StickerSlapFooter";
 import "@/styles/landing.css";
 
@@ -84,7 +84,18 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
             <div data-slipstream-feature><h3><span data-slipstream-no>03</span>Take back your time</h3><p>Bring a little ease to everyday tasks. Save your energy for the things that matter.</p></div>
           </div>
         </div>
-      </GlyphPortal> : <div style={{ height: "100%", display: "grid", placeItems: "center" }}><UniqueLoading variant="morph" size="lg" /></div>}
+      </GlyphPortal> : (
+        <GlassIconReveal
+          logo="/assets/images/bird-logo.png"
+          label="Loading"
+          look="light"
+          background="#ffffff"
+          originalColors
+          loop={false}
+          className="h-full w-full"
+          role="status"
+        />
+      )}
       {face && <StickerSlapFooter />}
     </main>
   );

@@ -62,11 +62,3 @@
 /* Keep the CTA readable over the blue content panel. */
 .try-example-link.liquid-glass--dark{color:#fff}
 
-/* Morph loader (21st.dev morph-loading reference); cube colors live in morph-loading.tsx. */
-@keyframes morph-0{0%,100%{border-radius:0%;transform:translate(0) scale(1)}25%{border-radius:50%;transform:translate(20px,-20px) scale(1.2)}50%{border-radius:25%;transform:translate(40px) scale(.8)}75%{border-radius:75%;transform:translate(20px,20px) scale(1.1)}}
-@keyframes morph-1{0%,100%{border-radius:0%;transform:translate(0) scale(1) rotate(0deg)}25%{border-radius:50%;transform:translate(-20px,-20px) scale(1.3) rotate(90deg)}50%{border-radius:25%;transform:translate(-40px) scale(.7) rotate(180deg)}75%{border-radius:75%;transform:translate(-20px,20px) scale(1.2) rotate(270deg)}}
-@keyframes morph-2{0%,100%{border-radius:0%;transform:translate(0) scale(1)}25%{border-radius:100%;transform:translate(-20px,20px) scale(.9)}50%{border-radius:0%;transform:translateY(40px) scale(1.4)}75%{border-radius:50%;transform:translate(20px,20px) scale(.8)}}
-@keyframes morph-3{0%,100%{border-radius:0%;transform:translate(0) scale(1) rotate(0deg)}25%{border-radius:25%;transform:translate(20px,20px) scale(1.1) rotate(-90deg)}50%{border-radius:100%;transform:translateY(-40px) scale(1.3) rotate(-180deg)}75%{border-radius:75%;transform:translate(-20px,-20px) scale(.9) rotate(-270deg)}}
-@media(prefers-reduced-motion:reduce){
-  .morph-loader__cube{animation:none!important;border-radius:0}
-}
