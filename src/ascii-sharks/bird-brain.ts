@@ -2,7 +2,7 @@
  * How the birds behave: their decisions, flight, collision avoidance and perching.
  * The World calls flyBird for each bird every step; nothing here draws anything.
  */
-import { clamp, rand, wind } from "./math";
+import { clamp, rand, smoothstep, wind } from "./math";
 import type { Shark, WorldEvent } from "./world";
 
 /** A spot on the tree a bird can sit on, in px; `long` marks the long resting branch. */
@@ -23,8 +23,8 @@ export interface Sky {
 /**
  * A bird's mind and body. x/y is the centre of its body.
  *
- * It decides for itself: patrol its own stretch of sky, glide in lazy loops, or, when
- * its energy runs low (or it just fancies it), fly to the tree and rest on a branch
+ * It decides for itself: make long passes across its band of sky, glide in a lazy loop, or,
+ * when its energy runs low (or it just fancies it), fly to the tree and rest on a branch
  * until it's fresh again. It watches the other bird and steers clear before they meet.
  */
 export interface BirdState {
@@ -40,10 +40,10 @@ export interface BirdState {
   timer: number;
   /** 1 rested → 0 exhausted. Flying drains it, hard flapping faster; resting refills it. */
   energy: number;
-  /** Its own stretch of sky, in px. */
+  /** Its own band of sky, in px. */
   home: { x0: number; x1: number; y0: number; y1: number };
-  /** Angle around the current soaring loop. */
-  loop: number;
+  /** Which way round the current soaring loop it flies. */
+  loop: 1 | -1;
   /** Index into the sky's perches, or -1. */
   perch: number;
   /** 1 in open sky; smaller near the tree, as if the tree stands farther back. */
@@ -62,8 +62,8 @@ export interface BirdState {
   up: V3;
   /** Perched: which way it looks about the vertical, 0 right to −π left, through facing the viewer. */
   yaw: number;
-  /** The axis of a turnaround in progress, held so the bird sweeps round one way. */
-  turnAxis: V3 | null;
+  /** The side a wide turn in progress swings out toward, held so the bird sweeps round one way. */
+  turnVia: V3 | null;
 }
 
 export type V3 = [number, number, number];
@@ -72,11 +72,25 @@ export type V3 = [number, number, number];
 const PERCH_SCALE = 0.7;
 /** Feet below body centre, in bird lengths (from the logo's side view). */
 const FOOT_DROP = 0.3;
-/** How fast a bird can swing its heading, rad/s, and roll its body. */
-const TURN_RATE = 2.3;
-const ROLL_RATE = 4.5;
+/** A bird's tightest turn, as a radius in bird lengths, so it arcs instead of pivoting. */
+const TURN_RADIUS = 1;
+/** How fast it can roll its body, rad/s. */
+const ROLL_RATE = 2.5;
+/** Past this angle off its heading, rad, it swings out through depth rather than pitching round. */
+const WIDE_TURN = 1.2;
+/** Half-size of a soaring loop in bird lengths: long across the screen, deep, barely tilted. */
+const LOOP_X = 2.2;
+const LOOP_Y = 0.35;
+const LOOP_Z = 1.3;
+/** How far ahead round the loop a soaring bird aims, rad. */
+const LOOP_LEAD = 0.8;
+/** How far it can stray through depth, in bird lengths. */
+const MAX_DEPTH = 2.2;
 /** Gravity, px/s²; a bird banks so its lift balances this against the pull of its turn. */
 const G = 380;
+
+/** Cruising speed, px/s: quicker in a wider sky, so a pass across it doesn't drag. */
+const cruiseSpeed = (W: number) => 70 + W * 0.065;
 
 const dot = (a: V3, b: V3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const cross = (a: V3, b: V3): V3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -124,7 +138,7 @@ export function newBird(x: number, y: number, heading: number, W: number, H: num
     timer: 0,
     energy: rand(0.75, 1),
     home: { x0: 0, x1: W, y0: 0, y1: H },
-    loop: 0,
+    loop: 1,
     perch: -1,
     scale: 1,
     flap: 0.6,
@@ -135,7 +149,7 @@ export function newBird(x: number, y: number, heading: number, W: number, H: num
     fwd: [face, 0, 0],
     up: [0, -1, 0],
     yaw: face === 1 ? 0 : -Math.PI,
-    turnAxis: null,
+    turnVia: null,
   };
 }
 
@@ -156,17 +170,20 @@ export function setPerches(world: Sky, points: Perch[]) {
   }
 }
 
-/** Split the open sky into one territory per bird, side by side with a little overlap. */
+/**
+ * Give each bird its own band of altitude across the whole width of the sky, with a little
+ * overlap, so they have room for long passes and usually cross at different heights.
+ */
 function assignTerritories(world: Sky) {
   const { width: W, height: H } = world;
   const birds = world.sharks.filter((sh) => sh.bird);
   birds.forEach((sh, k) => {
-    const span = (W * 0.88) / birds.length;
+    const span = (H * 0.54) / birds.length;
     sh.bird!.home = {
-      x0: W * 0.06 + span * k - span * 0.08,
-      x1: W * 0.06 + span * (k + 1) + span * 0.08,
-      y0: H * 0.08,
-      y1: H * 0.62,
+      x0: W * 0.06,
+      x1: W * 0.94,
+      y0: H * 0.08 + span * k - span * 0.12,
+      y1: H * 0.08 + span * (k + 1) + span * 0.12,
     };
   });
 }
@@ -186,10 +203,11 @@ function choosePerch(world: Sky) {
 
 /**
  * The bird's decision, made whenever its current plan runs out. Tired birds go to
- * rest; otherwise it mostly patrols its own territory, sometimes glides a lazy loop,
- * and now and then drops in on the tree just to sit.
+ * rest; otherwise it mostly makes long passes across its band of sky, sometimes glides a
+ * lazy loop, and now and then drops in on the tree just to sit.
  */
 function decide(world: Sky, sh: Shark) {
+  assignTerritories(world);
   const b = sh.bird!;
   const h = b.home;
   const L = sh.length;
@@ -204,45 +222,55 @@ function decide(world: Sky, sh: Shark) {
       return;
     }
   }
-  if (r < 0.4) {
-    // A lazy loop: a wide, flat ellipse somewhere in its territory, mostly gliding.
+  const dir = b.vx >= 0 ? 1 : -1;
+  const ahead = dir === 1 ? h.x1 - b.x : b.x - h.x0;
+  const rx = loopWidth(b, L);
+  if (r < 0.2 && ahead > rx * 2) {
+    // A lazy loop just ahead of it, mostly gliding, joined from the way it's already going.
     b.mode = "soar";
-    b.tx = rand(h.x0 + L * 1.6, Math.max(h.x0 + L * 1.6, h.x1 - L * 1.6));
-    b.ty = rand(h.y0 + L * 0.5, h.y1 - L * 0.5);
-    b.loop = Math.atan2(b.y - b.ty, (b.x - b.tx) / 4);
-    b.timer = rand(7, 12);
+    b.tx = b.x + dir * rx;
+    b.ty = clamp(b.y, h.y0 + L * LOOP_Y, Math.max(h.y0 + L * LOOP_Y, h.y1 - L * LOOP_Y));
+    b.loop = Math.random() < 0.5 ? 1 : -1;
+    b.timer = rand(8, 13);
   } else {
+    // A long pass: carry on the way it's heading while there's room, and only near the
+    // edge of the sky turn back for the far side.
     b.mode = "patrol";
-    // Mostly its own sky; once in a while it strays a little past the edge.
-    const stray = Math.random() < 0.12 ? (h.x1 - h.x0) * 0.25 : 0;
-    b.tx = clamp(rand(h.x0 - stray, h.x1 + stray), L * 0.4, world.width - L * 0.4);
-    b.ty = rand(h.y0, h.y1);
-    b.timer = rand(4, 8);
+    const minRun = Math.min(h.x1 - h.x0, Math.max(L * 3, world.width * 0.3));
+    const way = ahead >= minRun ? dir : -dir;
+    const room = way === dir ? ahead : h.x1 - h.x0 - ahead;
+    const run = rand(Math.min(minRun, room), room);
+    b.tx = b.x + way * run;
+    b.ty = clamp(b.y + rand(-0.3, 0.3) * run, h.y0, h.y1);
+    b.timer = run / cruiseSpeed(world.width) + 3;
   }
 }
 
+/** Half the width of a soaring loop, kept within its band of sky. */
+const loopWidth = (b: BirdState, L: number) => Math.min(L * LOOP_X, (b.home.x1 - b.home.x0) / 2);
+
 /**
  * Fly one bird for dt, in three dimensions. It steers by swinging its heading at a
- * limited rate rather than braking, so it always sweeps round: turning back on itself it
- * swings through depth toward or away from the viewer, or climbs up and over. It banks
- * into every turn, climbs and dives steeply but never just drops, flaps hard to climb and
- * glides to descend, avoids the other bird ahead of time and drifts a little with the
- * wind. Landing shrinks it toward the tree's scale.
+ * limited rate rather than braking, so it always sweeps round in a wide arc: turning back
+ * on itself it swings through depth toward or away from the viewer, rising or falling a
+ * little. It banks into every turn, climbs and dives steeply but never just drops, flaps
+ * hard to climb and glides to descend, avoids the other bird ahead of time and drifts a
+ * little with the wind. Landing shrinks it toward the tree's scale.
  */
 export function flyBird(world: Sky, sh: Shark, dt: number) {
   const b = sh.bird!;
   const { width: W, height: H, time } = world;
   const L = sh.length;
-  const S = 120 + L * 0.1;
+  const S = cruiseSpeed(W);
   const breeze = wind(time);
-  if (b.home.x1 - b.home.x0 >= W - 1) assignTerritories(world);
+  const cruiseTurn = S / (L * TURN_RADIUS);
 
   let wantVx = b.vx;
   let wantVy = b.vy;
   // Drift back toward the picture plane after swinging out through depth.
-  let wantVz = -b.z * 1.2;
+  let wantVz = -b.z * 0.6;
   let steep = 0.8;
-  let turnRate = TURN_RATE;
+  let turnRate = cruiseTurn;
   let flapTarget = 0.6;
   let scaleTarget = 1;
   let avoid = 1;
@@ -251,7 +279,7 @@ export function flyBird(world: Sky, sh: Shark, dt: number) {
   if (b.mode === "patrol" || b.mode === "soar") {
     b.timer -= dt;
     // Close enough once inside its own turning circle, or it would just circle the waypoint.
-    const arrived = Math.max(L * 0.5, (S / TURN_RATE) * 1.4);
+    const arrived = L * TURN_RADIUS * 1.4;
     if (b.timer <= 0 || (b.mode === "patrol" && Math.hypot(b.tx - b.x, b.ty - b.y) < arrived)) decide(world, sh);
   }
 
@@ -260,18 +288,21 @@ export function flyBird(world: Sky, sh: Shark, dt: number) {
     const dy = b.ty - b.y;
     const d = Math.hypot(dx, dy) || 1;
     wantVx = (dx / d) * S;
-    wantVy = (dy / d) * S;
+    // Not ruler-straight: a slow rise and fall, and a slow drift through depth.
+    wantVy = (dy / d + Math.sin(time * 0.8 + sh.id * 2.1) * 0.1) * S;
+    wantVz += Math.sin(time * 0.5 + sh.id) * S * 0.12;
   } else if (b.mode === "soar") {
-    // Chase a point running round a wide, flat ellipse; mostly gliding.
-    b.loop += dt * (S * 0.75) / (L * 2.4);
-    const px = b.tx + Math.cos(b.loop) * L * 1.6;
-    const py = b.ty + Math.sin(b.loop) * L * 0.35;
-    const dx = px - b.x;
-    const dy = py - b.y;
-    const d = Math.hypot(dx, dy) || 1;
-    const pace = S * clamp(0.6 + d / (L * 2), 0.6, 1.1);
-    wantVx = (dx / d) * pace;
-    wantVy = (dy / d) * pace;
+    // Aim a little ahead of where it is on the loop. The aim moves with the bird, so it
+    // can never catch it and fall into circling the spot.
+    const rx = loopWidth(b, L);
+    const aim = Math.atan2(b.z / (L * LOOP_Z), (b.x - b.tx) / rx) + b.loop * LOOP_LEAD;
+    const dx = b.tx + Math.cos(aim) * rx - b.x;
+    const dy = b.ty + Math.sin(aim) * L * LOOP_Y - b.y;
+    const dz = Math.sin(aim) * L * LOOP_Z - b.z;
+    const d = Math.hypot(dx, dy, dz) || 1;
+    wantVx = (dx / d) * S * 0.85;
+    wantVy = (dy / d) * S * 0.85;
+    wantVz = (dz / d) * S * 0.85;
     // Mostly gliding, with a burst of wingbeats every few seconds.
     flapTarget = Math.sin(time * 0.9 + sh.id * 2.3) > 0.4 ? 0.85 : 0.1;
   }
@@ -286,16 +317,16 @@ export function flyBird(world: Sky, sh: Shark, dt: number) {
       const ty = p.y - FOOT_DROP * L * b.scale;
       const dx = tx - b.x;
       const dy = ty - b.y;
-      const d = Math.hypot(dx, dy);
+      const d = Math.hypot(dx, dy, b.z);
       // Shrink toward the tree's scale as it closes in, so it fits on the branch.
       scaleTarget = PERCH_SCALE + (1 - PERCH_SCALE) * clamp(d / (Math.min(W, H) * 0.6), 0, 1);
       const pace = S * clamp(d / (L * 0.6), 0.25, 1);
       wantVx = (dx / (d || 1)) * pace;
       wantVy = (dy / (d || 1)) * pace;
-      wantVz = -b.z * 3;
+      wantVz = (-b.z / (d || 1)) * pace;
       steep = 0.95;
       // Tighter and tighter turns as it homes in, so it doesn't circle the branch.
-      turnRate = TURN_RATE + 5 * (1 - clamp(d / (L * 1.5), 0, 1));
+      turnRate = cruiseTurn + 5 * (1 - clamp(d / (L * 1.5), 0, 1));
       if (d < L * 0.9) {
         // Flare: wings up in the logo pose, braking into the landing.
         b.pose = 1;
@@ -310,7 +341,7 @@ export function flyBird(world: Sky, sh: Shark, dt: number) {
         b.vx = 0;
         b.vy = 0;
         b.vz = 0;
-        b.turnAxis = null;
+        b.turnVia = null;
         // Mostly face into the page, away from the corner.
         b.face = p.x > W * 0.5 ? -1 : 1;
         if (Math.random() < 0.3) b.face = b.face === 1 ? -1 : 1;
@@ -362,7 +393,6 @@ export function flyBird(world: Sky, sh: Shark, dt: number) {
     wantVx = b.face * S;
     wantVy = -S * 0.42;
     wantVz = -b.z;
-    turnRate = 3;
     flapTarget = 1;
     scaleTarget = b.scale + 0.25;
     if (b.timer <= 0) decide(world, sh);
@@ -416,7 +446,7 @@ export function flyBird(world: Sky, sh: Shark, dt: number) {
   b.z += b.vz * dt;
   b.x = clamp(b.x, -L, W + L);
   b.y = clamp(b.y, L * 0.2, H - L * 0.2);
-  b.z = clamp(b.z, -L * 1.4, L * 1.4);
+  b.z = clamp(b.z, -L * MAX_DEPTH, L * MAX_DEPTH);
 
   // The body follows its flight path, banking with the pull of the turn.
   const speed = Math.hypot(b.vx, b.vy, b.vz) || 1;
@@ -442,8 +472,8 @@ export function flyBird(world: Sky, sh: Shark, dt: number) {
 
 /**
  * Swing the bird's velocity toward the wanted one: its heading turns at most `rate`
- * rad/s and its speed eases separately, so it sweeps round instead of stalling. Turning
- * back on itself, it holds one way round for the whole turn.
+ * rad/s and its speed eases separately, so it sweeps round instead of stalling. In a wide
+ * turn it holds one way round for the whole turn.
  */
 function steer(b: BirdState, wx: number, wy: number, wz: number, rate: number, speedEase: number, dt: number, L: number) {
   const want = Math.hypot(wx, wy, wz);
@@ -453,17 +483,21 @@ function steer(b: BirdState, wx: number, wy: number, wz: number, rate: number, s
   if (want > 1e-3) {
     const w: V3 = [wx / want, wy / want, wz / want];
     const angle = Math.acos(clamp(dot(v, w), -1, 1));
-    let axis = cross(v, w);
-    if (angle < 0.4) b.turnAxis = null;
-    else if (angle > 2.6 && !b.turnAxis) b.turnAxis = pickTurn(b, v, L);
-    if (b.turnAxis) {
-      const held: V3 = [b.turnAxis[0], b.turnAxis[1], b.turnAxis[2]];
-      // Let go if the wanted heading has swung round to the other side.
-      if (perp(held, v) < 1e-6 || dot(held, axis) < -0.05) b.turnAxis = null;
-      else axis = b.turnAxis = held;
+    if (angle < 0.5) b.turnVia = null;
+    else if (angle > WIDE_TURN && !b.turnVia) b.turnVia = pickTurn(b, w, L);
+    let aim = w;
+    if (b.turnVia) {
+      // Aim to the side of the wanted heading, less and less as it comes round, so the
+      // turn sweeps out one way and still always ends up on the wanted heading.
+      const s = b.turnVia;
+      const lean = smoothstep(0.5, WIDE_TURN, angle);
+      const along = dot(s, w);
+      aim = [w[0] + (s[0] - along * w[0]) * lean, w[1] + (s[1] - along * w[1]) * lean, w[2] + (s[2] - along * w[2]) * lean];
+      normalize(aim);
     }
-    if (!b.turnAxis && normalize(axis) < 1e-6) axis = pickTurn(b, v, L);
-    v = rotate(v, axis, Math.min(angle, rate * dt));
+    const axis = cross(v, aim);
+    normalize(axis);
+    v = rotate(v, axis, Math.min(Math.acos(clamp(dot(v, aim), -1, 1)), rate * dt));
   }
   b.vx = v[0] * speed;
   b.vy = v[1] * speed;
@@ -471,22 +505,17 @@ function steer(b: BirdState, wx: number, wy: number, wz: number, rate: number, s
 }
 
 /**
- * How a bird turns back on itself: most often it swings round through depth, toward or
- * away from the viewer (back toward the picture plane if it has strayed far); sometimes it
- * climbs up and over in a half loop; otherwise a climbing turn somewhere between.
+ * Which way a bird swings out on a wide turn toward heading `w`: round through depth,
+ * toward or away from the viewer (back toward the picture plane if it has strayed far),
+ * rising if it's low in its band of sky and falling if it's high. It never pitches up and over.
  */
-function pickTurn(b: BirdState, v: V3, L: number): V3 {
-  const r = Math.random();
-  const climb = r < 0.55 ? 0 : r < 0.8 ? Math.PI / 2 : rand(0.35, 1.1);
+function pickTurn(b: BirdState, w: V3, L: number): V3 {
+  const climb = rand(0.3, 0.9);
+  const rise = b.y > (b.home.y0 + b.home.y1) / 2 ? 1 : -1;
   const depth = b.z > L * 0.3 ? -1 : b.z < -L * 0.3 ? 1 : Math.random() < 0.65 ? -1 : 1;
-  let via: V3 = [0, -Math.sin(climb), depth * Math.cos(climb)];
-  if (perp(via, v) < 1e-6) {
-    via = [0, 0, depth];
-    perp(via, v);
-  }
-  const axis = cross(v, via);
-  normalize(axis);
-  return axis;
+  const via: V3 = [0, -rise * Math.sin(climb), depth * Math.cos(climb)];
+  if (perp(via, w) < 1e-6) return [1, 0, 0];
+  return via;
 }
 
 /**
