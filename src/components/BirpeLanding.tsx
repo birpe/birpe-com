@@ -74,8 +74,8 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
   }, []);
   return (
     <main onPointerMove={onMainPointerMove} data-demo-scroll data-slipstream-demo tabIndex={0} aria-label="Birpe. Scroll into a lighter day."
-      id="top"
       style={{ width: "100%", height: "100svh", overflowX: "clip", overflowY: "auto", background: "#fff", containerType: "inline-size", fontFamily: "Arial, sans-serif", WebkitOverflowScrolling: "touch", scrollPaddingBottom: "env(safe-area-inset-bottom)" }}>
+      <div id="top" />
       <h1 className="sr-only">Birpe — Your everyday AI agent</h1>
       <LiquidGlassFilter />
       {face ? <GlyphPortal word={s.word} fontFamily={face} fontWeight={500} style={{ fontFamily: "Arial, sans-serif", "--gp-field": "#1859d5", "--gp-ink": "#142033", "--gp-foreground": "#ffffff" }} backdrop={<AsciiOcean className="hero-ocean" sharks={oceanSharks} theme={BIRPE_THEME} speed={0.55} />} background={<Aurora className="birpe-field" intensity={0.55} duration={18} />} scrollLength={s.scrollLength} interactive={s.interactive} annotations={s.annotations} enterLabel="Scroll here" enterInteractive={false} front={

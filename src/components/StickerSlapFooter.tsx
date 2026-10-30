@@ -253,7 +253,7 @@ const DEFAULT_JOBS: Job[] = [
 const DEFAULT_SOCIALS: Social[] = []
 const DEFAULT_STICKERS: StickerSpec[] = [
   { kind: "burst", text: "birpe" },
-  { node: <img src="/assets/images/bird-logo.png" alt="" draggable={false} />, label: "Birpe bird sticker" },
+  { node: <img className="ssf-st-logo" src="/assets/images/bird-logo.png" alt="" draggable={false} />, label: "Birpe bird sticker" },
   "smiley",
   "heart",
   { kind: "bubble", text: "life" },
@@ -347,7 +347,7 @@ const CSS =
   ".ssf-soc svg *{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}" +
   ".ssf-soc .ssf-dot{stroke-width:2.8}" +
   ".ssf-soc:hover,.ssf-soc:focus-visible{background:var(--ssf-cream);color:var(--ssf-panel);box-shadow:inset 0 0 0 1.5px var(--ssf-cream);transform:translateY(-3px) rotate(-8deg)}" +
-  ".ssf-stage{position:relative;z-index:1;margin-top:auto;width:min(100%,calc(var(--ssf-wmh) * var(--ssf-ar,3.2)));align-self:stretch;padding:0}" +
+  ".ssf-stage{position:relative;z-index:1;margin-top:auto;width:min(100%,calc(var(--ssf-wmh) * var(--ssf-ar,3.2)));align-self:center;padding:0}" +
   ".ssf-stage-in{position:relative;container-type:inline-size}" +
   ".ssf-wm-btn{display:block;width:100%;border-radius:0 !important;cursor:pointer;-webkit-tap-highlight-color:transparent}" +
   ".ssf-wm{width:100%;height:auto;color:var(--ssf-cream)}" +
@@ -364,6 +364,7 @@ const CSS =
   ".ssf-st.is-drag .ssf-st-lift{transform:translateY(-7%) scale(1.12);filter:drop-shadow(0 2px 1px rgba(10,16,60,.16)) drop-shadow(0 22px 22px rgba(10,16,60,.34))}" +
   ".ssf-st-slap{display:block}" +
   ".ssf-st svg,.ssf-st img{width:100%;height:auto;display:block}" +
+  ".ssf-st-logo{scale:1.3;filter:drop-shadow(.4cqw 0 0 #fff) drop-shadow(-.4cqw 0 0 #fff) drop-shadow(0 .4cqw 0 #fff) drop-shadow(0 -.4cqw 0 #fff)}" +
   ".ssf-sheen{transform:translateX(-130%);transition:transform 0s}" +
   ".ssf-st-btn:hover .ssf-sheen{transform:translateX(130%);transition:transform .9s cubic-bezier(.4,0,.2,1)}" +
   ".ssf-ring{position:absolute;left:50%;top:50%;width:150%;aspect-ratio:1;translate:-50% -50%;border-radius:50%;border:2px solid var(--ssf-cream);opacity:0;pointer-events:none}" +
@@ -383,7 +384,7 @@ const CSS =
   ".ssf--narrow .ssf-col+.ssf-col{margin-top:clamp(16px,4vw,22px);padding-top:clamp(16px,4vw,22px);border-top:1px solid color-mix(in oklab,var(--ssf-cream) 22%,transparent)}" +
   ".ssf--narrow .ssf-tag{align-self:flex-start;margin-bottom:clamp(10px,2.8vw,14px)}" +
   ".ssf--narrow .ssf-big{font-size:clamp(16px,4.6vw,21px);line-height:1.35;letter-spacing:-.018em}" +
-  ".ssf--narrow .ssf-line{overflow:visible;margin:0 0 .55em;padding:.02em 0 .12em}" +
+  ".ssf--narrow .ssf-line{margin:0 0 .55em;padding:.02em 0 .12em}" +
   ".ssf--narrow .ssf-line:last-child{margin-bottom:0}" +
   ".ssf--narrow .ssf-line>*{display:block;max-width:100%;white-space:normal;overflow-wrap:anywhere;text-wrap:pretty}" +
   ".ssf--narrow .ssf-map{align-self:flex-start;margin-top:clamp(12px,3vw,18px);font-size:clamp(13px,3.8vw,16px)}" +
@@ -1020,7 +1021,16 @@ export default function StickerSlapFooter({
             </li>
           )}
         </ul>
-        {note && <p className="ssf-note">{note}</p>}
+        {note &&
+          (email || chatHref ? (
+            <p className="ssf-note">{note}</p>
+          ) : (
+            <p className="ssf-big">
+              <span className="ssf-line" style={{ "--i": 0 } as React.CSSProperties}>
+                <span>{note}</span>
+              </span>
+            </p>
+          ))}
         {socials.length > 0 && (
           <ul className="ssf-socials">
             {socials.map((s, i) => (
