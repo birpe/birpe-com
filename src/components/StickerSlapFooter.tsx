@@ -381,12 +381,12 @@ const CSS =
   ".ssf--narrow .ssf-cols{gap:0;padding:clamp(16px,4.5vw,22px) clamp(14px,4vw,20px) clamp(10px,3vw,14px)}" +
   ".ssf--narrow .ssf-col{width:100%;align-items:stretch}" +
   ".ssf--narrow .ssf-col+.ssf-col{margin-top:clamp(16px,4vw,22px);padding-top:clamp(16px,4vw,22px);border-top:1px solid color-mix(in oklab,var(--ssf-cream) 22%,transparent)}" +
-  ".ssf--narrow .ssf-tag{margin-bottom:clamp(10px,2.8vw,14px)}" +
+  ".ssf--narrow .ssf-tag{align-self:flex-start;margin-bottom:clamp(10px,2.8vw,14px)}" +
   ".ssf--narrow .ssf-big{font-size:clamp(16px,4.6vw,21px);line-height:1.35;letter-spacing:-.018em}" +
   ".ssf--narrow .ssf-line{overflow:visible;margin:0 0 .55em;padding:.02em 0 .12em}" +
   ".ssf--narrow .ssf-line:last-child{margin-bottom:0}" +
   ".ssf--narrow .ssf-line>*{display:block;max-width:100%;white-space:normal;overflow-wrap:anywhere;text-wrap:pretty}" +
-  ".ssf--narrow .ssf-map{margin-top:clamp(12px,3vw,18px);font-size:clamp(13px,3.8vw,16px)}" +
+  ".ssf--narrow .ssf-map{align-self:flex-start;margin-top:clamp(12px,3vw,18px);font-size:clamp(13px,3.8vw,16px)}" +
   ".ssf--narrow .ssf-note{max-width:none;font-size:clamp(12px,3.4vw,14px);line-height:1.5;margin-top:clamp(10px,2.8vw,14px)}" +
   ".ssf--narrow .ssf-stage{width:100%;max-width:100%;margin:clamp(12px,3.5vw,20px) 0 0;padding:0;align-self:stretch}" +
   ".ssf--narrow .ssf-stage-in{transform:none!important}" +

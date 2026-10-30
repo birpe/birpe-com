@@ -158,7 +158,8 @@ export class CornerTree {
     this.leafSpots = [];
     this.perches = [];
     this.leaves = [];
-    const T = Math.min(H * 0.52, W * 0.36);
+    // Upright screens are narrow, so the tree can take more of their width.
+    const T = Math.min(H * 0.52, W * (W < H ? 0.55 : 0.36));
     const baseX = W - T * 0.36;
     const baseY = H - ch * 1.5;
     this.baseY = baseY;

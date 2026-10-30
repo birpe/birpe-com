@@ -213,12 +213,6 @@
 @container (max-width: 450px) {
   [data-sublime-header] {
     width: calc(100% - 32px);
-    align-items: flex-start;
-  }
-
-  [data-sublime-category] {
-    max-width: 14ch;
-    text-align: right;
   }
 
   [data-slipstream-features] {

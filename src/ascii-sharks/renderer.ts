@@ -438,7 +438,9 @@ export class AsciiRenderer {
     this.width = width;
     this.height = height;
     this.dpr = dpr;
-    this.cw = this.theme.cell ? clamp(Math.round(this.theme.cell), 6, 16) : clamp(Math.round(width / 124), 8, 13);
+    // A small sky gets a finer grid: at full size a phone is only ~40 cells across, too coarse to draw a bird or a tree.
+    const fit = clamp(Math.min(width, height * 1.6) / 900, 2 / 3, 1);
+    this.cw = this.theme.cell ? clamp(Math.round(this.theme.cell * fit), 6, 16) : clamp(Math.round(width / 124), 8, 13);
     this.ch = Math.round(this.cw * 1.45);
     this.cols = Math.ceil(width / this.cw);
     this.rows = Math.ceil(height / this.ch);
