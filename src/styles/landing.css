@@ -236,7 +236,8 @@
   }
 }
 
-@container (min-width: 960px) {
+/* Three across once each column has room for a comfortable line: tablets and up. */
+@container (min-width: 720px) {
   [data-slipstream-features] {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: clamp(1.5rem, 3cqw, 2.75rem);
