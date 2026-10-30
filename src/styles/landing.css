@@ -2,7 +2,7 @@
   scroll-behavior: smooth;
 }
 
-/* ASCII sharks swim behind the word; the canvas takes its glyphs from this font. */
+/* ASCII sharks swim across the hero sky; the canvas takes its glyphs from this font. */
 .hero-ocean {
   position: absolute;
   inset: 0;
@@ -19,52 +19,42 @@
     radial-gradient(ellipse at 20% 12%, #3d9ff6 0, transparent 48%),
     radial-gradient(ellipse at 90% 70%, #1239c8 0, transparent 60%),
     linear-gradient(125deg, #2e8df4, #205ce7 55%, #1039c3);
-  transform: translateZ(0) scale(var(--gp-field-scale, 1));
-  will-change: transform;
+  transform: translateZ(0);
   backface-visibility: hidden;
 }
 
-/* The hero's left margin: GlyphPortal reads this to place the word, and the header and scroll cue line up with it. */
-[data-slipstream-demo] [data-gp-viewport] {
-  padding-left: max(clamp(16px, 3cqw, 48px), env(safe-area-inset-left));
-}
-
-[data-slipstream-demo] [data-gp-caption] {
-  inset: auto var(--gp-word-left, 24px) max(16px, env(safe-area-inset-bottom));
-  top: min(calc(var(--gp-word-bottom, 50%) + 24px), calc(100% - 76px));
-  align-items: flex-start;
-  justify-content: flex-start;
-}
-
-[data-slipstream-demo] [data-gp-hint] {
-  display: none;
+/* The hero's left margin: the header and scroll cue line up with it. */
+.hero {
+  --hero-gutter: max(clamp(16px, 3cqw, 48px), env(safe-area-inset-left));
+  position: relative;
+  height: 100svh;
+  overflow: clip;
+  isolation: isolate;
+  color: #142033;
 }
 
 /* The scroll cue is a light liquid-glass pill; .liquid-glass owns its surface. */
-[data-slipstream-demo] [data-gp-enter] {
+.hero .hero-cue {
+  position: absolute;
+  left: var(--hero-gutter);
+  bottom: max(24px, calc(16px + env(safe-area-inset-bottom)));
   min-height: 48px;
   padding: 0 22px;
-  gap: 30px;
   font-family: "Birpe Rounded", Arial, sans-serif;
   font-size: 14px;
   font-weight: 500;
 }
 
-[data-slipstream-demo] [data-gp-enter]:focus-visible {
+.hero-cue:focus-visible {
   outline: 2px solid #276cf5;
   outline-offset: 4px;
-}
-
-/* Phones can tap a letter directly; a dropdown here would sit on top of the tree. */
-[data-slipstream-demo] [data-gp-touch-picker] {
-  display: none !important;
 }
 
 [data-sublime-header] {
   position: absolute;
   top: max(16px, env(safe-area-inset-top));
-  left: var(--gp-word-left, 16px);
-  right: max(var(--gp-word-left, 16px), env(safe-area-inset-right));
+  left: var(--hero-gutter);
+  right: max(var(--hero-gutter), env(safe-area-inset-right));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -111,9 +101,26 @@
   top: -48.7%;
 }
 
-[data-slipstream-demo] [data-gp-content] {
+.intro {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-content: center;
+  box-sizing: border-box;
+  min-height: 100svh;
+  background: #1859d5;
+  color: #fff;
+  overflow: clip;
+  overflow-wrap: anywhere;
   padding: clamp(2.75rem, 8svh, 5.5rem) max(clamp(1.25rem, 5cqw, 4.5rem), env(safe-area-inset-right)) clamp(3rem, 10svh, 6rem) max(clamp(1.25rem, 5cqw, 4.5rem), env(safe-area-inset-left));
   padding-bottom: max(clamp(3rem, 10svh, 6rem), calc(3rem + env(safe-area-inset-bottom)));
+}
+
+.intro-field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
 }
 
 [data-slipstream-copy] {
@@ -214,8 +221,8 @@
     top: max(12px, env(safe-area-inset-top));
   }
 
-  [data-slipstream-demo] [data-gp-caption] {
-    top: min(calc(var(--gp-word-bottom, 50%) + 12px), calc(100% - 64px));
+  .hero .hero-cue {
+    bottom: max(16px, env(safe-area-inset-bottom));
   }
 }
 

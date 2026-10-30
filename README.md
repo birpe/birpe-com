@@ -19,7 +19,6 @@ src/
     StickerSlapFooter.tsx  Self-contained animated footer with draggable stickers
     ui/
       Cloudscape.tsx       Animated WebGL cloud background
-      GlyphPortal.tsx      Scroll-driven word transition
       LiquidGlass.tsx      Shared glass controls
       liquid-glass-logo-reveal.tsx  WebGL glass bird intro shown while the brand font loads
   lib/
@@ -34,4 +33,4 @@ public/
     images/                Logo and favicon artwork
 ```
 
-The Glyph Portal keeps its original MIT attribution in its source file. The page is a brand presentation and is not connected to an AI service yet.
+The page is a brand presentation and is not connected to an AI service yet.

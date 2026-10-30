@@ -52,5 +52,5 @@
 /* Cloud backdrop. */
 .cloudscape{position:relative;display:flex;width:100%;align-items:center;justify-content:center;overflow:hidden}
 .cloudscape__canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;transition:opacity .45s ease}
-.hero-sky{position:absolute;inset:0;pointer-events:none;opacity:var(--gp-caption,1)}
+.hero-sky{position:absolute;inset:0;pointer-events:none}
 

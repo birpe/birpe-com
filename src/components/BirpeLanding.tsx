@@ -3,7 +3,6 @@ import { flushSync } from "react-dom";
 import { BIRPE_THEME, type SharkSpec } from "@/ascii-sharks";
 import { AsciiOcean } from "@/ascii-sharks/react";
 import Aurora from "@/components/ui/aurora";
-import GlyphPortal from "@/components/ui/GlyphPortal";
 import { LiquidGlassFilter, LiquidGlassLink } from "@/components/ui/LiquidGlass";
 import { GlassIconReveal } from "@/components/ui/liquid-glass-logo-reveal";
 import StickerSlapFooter from "@/components/StickerSlapFooter";
@@ -15,26 +14,17 @@ const oceanSharks: SharkSpec[] = [
   { kind: "bird", size: 0.3 },
 ];
 
-/** A little under the portal's default size: phones keep a full line, wide screens leave the right side to the tree. */
-const heroWordFit = (W: number, H: number) => ({
-  width: W * (W < 520 ? 0.86 : W < H ? 0.72 : 0.6),
-  height: H < 480 ? Math.min(H * 0.46, Math.max(36, H - 190)) : H * 0.44,
-});
-
-const settings = { word: "birpe", scrollLength: 2.4, interactive: true, annotations: false };
-const family = '"Birpe Rounded", Arial, sans-serif';
 /** Keep the intro loader visible long enough to read the motion, even when the font is cached. */
 const MIN_LOADER_MS = 3500;
 let fontLoad: Promise<void> | undefined;
 
-export default function BirpeLanding(props: Partial<typeof settings>) {
-  const s = { ...settings, ...props };
+export default function BirpeLanding() {
   const bird = useRef<HTMLButtonElement>(null);
   const logoImage = useRef<HTMLImageElement>(null);
   const page = useRef<HTMLElement>(null);
   const [logoFlown, setLogoFlown] = useState(false);
   const reduceMotion = useRef(false);
-  const [face, setFace] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
   const logoIntro = useMemo(() => ({
     image: () => logoImage.current,
@@ -67,27 +57,21 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
   useEffect(() => {
     let cancelled = false;
     const timers: number[] = [];
-    // Load the local brand face before mounting the scroll-driven word artwork.
+    // Load the local brand face before mounting the hero, so the scroll cue doesn't swap fonts.
     fontLoad ??= new FontFace("Birpe Rounded", 'url("/assets/fonts/birpe-rounded.ttf")', { weight: "500" })
       .load().then((font) => { document.fonts.add(font); });
 
-    const faceReady = new Promise<string>((resolve) => {
-      let settled = false;
-      const finish = (value: string) => {
-        if (settled) return;
-        settled = true;
-        resolve(value);
-      };
-      timers.push(window.setTimeout(() => finish("Arial, sans-serif"), 1600));
-      void fontLoad!.then(() => finish(family), () => finish("Arial, sans-serif"));
+    const faceReady = new Promise<void>((resolve) => {
+      timers.push(window.setTimeout(resolve, 1600));
+      void fontLoad!.then(resolve, resolve);
     });
 
     const minLoader = new Promise<void>((resolve) => {
       timers.push(window.setTimeout(resolve, MIN_LOADER_MS));
     });
 
-    void Promise.all([faceReady, minLoader]).then(([value]) => {
-      if (!cancelled) setFace(value);
+    void Promise.all([faceReady, minLoader]).then(() => {
+      if (!cancelled) setReady(true);
     });
 
     return () => {
@@ -101,21 +85,29 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
       <div id="top" />
       <h1 className="sr-only">Birpe — Your everyday AI agent</h1>
       <LiquidGlassFilter />
-      {face ? <GlyphPortal word={s.word} fontFamily={face} fontWeight={500} style={{ fontFamily: "Arial, sans-serif", "--gp-field": "#1859d5", "--gp-ink": "#142033", "--gp-foreground": "#ffffff" }} backdrop={<AsciiOcean className="hero-ocean" sharks={oceanSharks} theme={BIRPE_THEME} speed={0.55} logoIntro={logoIntro} />} background={<Aurora className="birpe-field" intensity={0.55} duration={18} />} scrollLength={s.scrollLength} interactive={s.interactive} annotations={s.annotations} enterLabel="Scroll here" enterInteractive={false} align="left" wordFit={heroWordFit} front={
+      {ready ? <>
+        <section className="hero">
+          <div className="hero-sky" aria-hidden="true"><AsciiOcean className="hero-ocean" sharks={oceanSharks} theme={BIRPE_THEME} speed={0.55} logoIntro={logoIntro} /></div>
           <div data-sublime-header>{!logoFlown && <button ref={bird} className="bird-guide" aria-label="Give the bird a little lift" onClick={()=>{if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;bird.current?.animate([{translate:'0 0',rotate:'0deg'},{translate:'9px -15px',rotate:'-10deg'},{translate:'0 0',rotate:'0deg'}],{duration:600,easing:'ease-in-out'});}}><span className="header-bird"><img ref={logoImage} src="/assets/images/bird-logo.png" alt="" /></span></button>}<span data-sublime-category>Your everyday AI agent</span></div>
-        }>
-        <div data-slipstream-copy>
-          <h2>Less on your mind. More room for life.</h2>
-          <LiquidGlassLink className="try-example-link" href="#footer">
-            Coming soon <span aria-hidden="true">↓</span>
+          <LiquidGlassLink className="hero-cue" tone="light" href="#intro">
+            Scroll here <span aria-hidden="true">↓</span>
           </LiquidGlassLink>
-          <div data-slipstream-features>
-            <div data-slipstream-feature><h3><span data-slipstream-no>01</span>Find your focus</h3><p>Turn a crowded to-do list into a clear plan. Find the next step without the mental clutter.</p></div>
-            <div data-slipstream-feature><h3><span data-slipstream-no>02</span>Make sense of more</h3><p>Get the useful details from long notes and information, without the overload.</p></div>
-            <div data-slipstream-feature><h3><span data-slipstream-no>03</span>Take back your time</h3><p>Bring a little ease to everyday tasks. Save your energy for the things that matter.</p></div>
+        </section>
+        <section className="intro" id="intro">
+          <div className="intro-field" aria-hidden="true" inert><Aurora className="birpe-field" intensity={0.55} duration={18} /></div>
+          <div data-slipstream-copy>
+            <h2>Less on your mind. More room for life.</h2>
+            <LiquidGlassLink className="try-example-link" href="#footer">
+              Coming soon <span aria-hidden="true">↓</span>
+            </LiquidGlassLink>
+            <div data-slipstream-features>
+              <div data-slipstream-feature><h3><span data-slipstream-no>01</span>Find your focus</h3><p>Turn a crowded to-do list into a clear plan. Find the next step without the mental clutter.</p></div>
+              <div data-slipstream-feature><h3><span data-slipstream-no>02</span>Make sense of more</h3><p>Get the useful details from long notes and information, without the overload.</p></div>
+              <div data-slipstream-feature><h3><span data-slipstream-no>03</span>Take back your time</h3><p>Bring a little ease to everyday tasks. Save your energy for the things that matter.</p></div>
+            </div>
           </div>
-        </div>
-      </GlyphPortal> : (
+        </section>
+      </> : (
         <GlassIconReveal
           logo="/assets/images/bird-logo.png"
           label="Loading"
@@ -127,7 +119,7 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
           role="status"
         />
       )}
-      {face && <StickerSlapFooter />}
+      {ready && <StickerSlapFooter />}
     </main>
   );
 }
