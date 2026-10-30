@@ -3,10 +3,23 @@ import { World, type SharkSpec } from "./world";
 
 /** Longest sim step; a frame's time is split into equal substeps no longer than this. */
 const STEP = 1 / 60;
+/**
+ * How often the sky is redrawn. Everything in it sits on the cell grid, so a faster screen shows
+ * nothing new: it tops out at FULL_FPS, rests at REST_FPS once nobody's touching the page or the
+ * window is in the background, and backs off further if a frame is taking too much of the device.
+ */
+const FULL_FPS = 60;
+const REST_FPS = 30;
+const BUSY_FPS = 20;
+/** Milliseconds without a pointer move or scroll before the sky rests. */
+const IDLE_AFTER = 20_000;
+/** Smoothed ms of work per frame past which to slow down: first to REST_FPS, then to BUSY_FPS. */
+const HEAVY_FRAME = 7;
+const OVERLOADED_FRAME = 14;
 
 /**
  * Wires World + AsciiRenderer to a canvas: per-frame substepped loop, resize,
- * pointer input, pausing off-screen, and prefers-reduced-motion.
+ * pointer input, frame pacing, pausing off-screen, and prefers-reduced-motion.
  */
 export class OceanEngine {
   private world: World;
@@ -19,6 +32,9 @@ export class OceanEngine {
   private intersectionObserver: IntersectionObserver;
   private disposed = false;
   private size = { width: 0, height: 0, dpr: 0 };
+  private lastInput = performance.now();
+  /** Smoothed ms of work per drawn frame. */
+  private load = 0;
 
   /** `speed` scales simulated time: 0.5 runs the whole ocean at half pace. */
   constructor(private canvas: HTMLCanvasElement, sharks?: SharkSpec[], theme?: OceanTheme, private speed = 1) {
@@ -41,6 +57,8 @@ export class OceanEngine {
     window.addEventListener("pointerdown", this.onPointerDown, { passive: true });
     document.documentElement.addEventListener("pointerleave", this.onPointerLeave);
     window.addEventListener("blur", this.onPointerLeave);
+    // Capture: the page scrolls inside an element, and scroll events don't bubble up to the window.
+    window.addEventListener("scroll", this.onScroll, { passive: true, capture: true });
 
     this.resize();
     // Canvas text can't trigger a webfont load; once the mono face is in, redraw.
@@ -60,6 +78,7 @@ export class OceanEngine {
     window.removeEventListener("pointerdown", this.onPointerDown);
     document.documentElement.removeEventListener("pointerleave", this.onPointerLeave);
     window.removeEventListener("blur", this.onPointerLeave);
+    window.removeEventListener("scroll", this.onScroll, { capture: true });
   }
 
   private resize() {
@@ -91,18 +110,32 @@ export class OceanEngine {
     this.raf = requestAnimationFrame(this.frame);
   }
 
+  private targetFps(now: number) {
+    if (this.load > OVERLOADED_FRAME) return BUSY_FPS;
+    const resting = now - this.lastInput > IDLE_AFTER || !document.hasFocus();
+    return resting || this.load > HEAVY_FRAME ? REST_FPS : FULL_FPS;
+  }
+
   private frame = (now: number) => {
+    this.raf = requestAnimationFrame(this.frame);
+    // Three quarters of the gap, so a screen just under the target rate isn't halved.
+    if (now - this.last < 750 / this.targetFps(now)) return;
     // The first frame's timestamp can predate schedule()'s performance.now().
     const dt = Math.min(0.1, Math.max(0, (now - this.last) / 1000)) * this.speed;
     this.last = now;
-    if (dt > 0 && !this.faded()) {
-      // Advance by exactly the frame's time so motion stays even at 90/120 Hz,
+    if (this.faded()) {
+      this.world.events.length = 0;
+      return;
+    }
+    if (dt > 0) {
+      const began = performance.now();
+      // Advance by exactly the frame's time so motion stays even at any frame rate,
       // where a fixed 60 Hz step would leave some frames unmoved.
       const steps = Math.ceil(dt / STEP);
       for (let i = 0; i < steps; i++) this.world.step(dt / steps);
       this.renderer.render(this.world, dt);
+      this.load += (performance.now() - began - this.load) * 0.05;
     }
-    this.raf = requestAnimationFrame(this.frame);
   };
 
   /** Reduced motion: let the ecosystem settle, then show a single frame. */
@@ -130,7 +163,12 @@ export class OceanEngine {
     return { x, y, inside };
   }
 
+  private onScroll = () => {
+    this.lastInput = performance.now();
+  };
+
   private onPointerMove = (e: PointerEvent) => {
+    this.lastInput = performance.now();
     const { x, y, inside } = this.toLocal(e);
     const p = this.world.pointer;
     p.x = x;
@@ -139,6 +177,7 @@ export class OceanEngine {
   };
 
   private onPointerDown = (e: PointerEvent) => {
+    this.lastInput = performance.now();
     const { x, y, inside } = this.toLocal(e);
     if (inside && !this.reducedMotion.matches) this.world.splash(x, y);
   };

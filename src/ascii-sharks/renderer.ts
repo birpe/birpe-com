@@ -12,6 +12,8 @@ import { CornerTree } from "./tree";
 import { SHARK_NODES, type Shark, type SharkKind, type World } from "./world";
 
 const ALPHA_LEVELS = 6;
+/** Sim seconds between repaints of the tree: about ten a second at the hero's pace. */
+const TREE_STEP = 0.055;
 const FISH_ALPHAS = [0.28, 0.42, 0.58, 0.74, 0.9];
 
 // Dot colour classes: blue, green, red, pale; the last entry is the cyan wake.
@@ -349,6 +351,10 @@ export function paintGrid(g: CanvasRenderingContext2D, W: number, H: number, cw:
 export class AsciiRenderer {
   private ctx: CanvasRenderingContext2D;
   private bg: HTMLCanvasElement;
+  /** The grid with the tree on it, repainted a few times a second and copied in every frame. */
+  private sky: HTMLCanvasElement;
+  private skyCtx: CanvasRenderingContext2D;
+  private skyDrawnAt = -Infinity;
   private dpr = 1;
   private width = 0;
   private height = 0;
@@ -367,6 +373,8 @@ export class AsciiRenderer {
   private bucketOf = new Uint8Array(0);
   private bucketOrder = new Int32Array(0);
   private bucketCounts = new Int32Array(DOT_RGB.length * ALPHA_LEVELS + 1);
+  private bucketStarts = new Int32Array(DOT_RGB.length * ALPHA_LEVELS + 1);
+  private bucketCursor = new Int32Array(DOT_RGB.length * ALPHA_LEVELS + 1);
   private dotStyles: string[] = [];
 
   private sharkFlag = new Uint8Array(0);
@@ -404,6 +412,11 @@ export class AsciiRenderer {
     if (!ctx) throw new Error("2D canvas unavailable");
     this.ctx = ctx;
     this.bg = document.createElement("canvas");
+    this.sky = document.createElement("canvas");
+    // Opaque like the main canvas, so its text is antialiased the same way.
+    const skyCtx = this.sky.getContext("2d", { alpha: false });
+    if (!skyCtx) throw new Error("2D canvas unavailable");
+    this.skyCtx = skyCtx;
     this.fishStyles = FISH_ALPHAS.map((a) => `rgba(${theme.fish.join(",")},${a})`);
 
     for (let c = 0; c < DOT_RGB.length; c++) {
@@ -449,6 +462,9 @@ export class AsciiRenderer {
     this.canvas.height = Math.round(height * dpr);
     this.bg.width = this.canvas.width;
     this.bg.height = this.canvas.height;
+    this.sky.width = this.canvas.width;
+    this.sky.height = this.canvas.height;
+    this.skyDrawnAt = -Infinity;
 
     const n = this.cols * this.rows;
     if (this.cols !== prevCols || this.rows !== prevRows) {
@@ -491,6 +507,24 @@ export class AsciiRenderer {
     paintGrid(g, W, H, cw, ch, dpr, this.theme.grid);
   }
 
+  /**
+   * The tree is by far the most glyphs to draw and its sway and shimmer are slow, so it's
+   * painted onto a copy of the grid a few times a second rather than every frame.
+   */
+  private paintSky(t: number) {
+    if (t - this.skyDrawnAt < TREE_STEP) return this.sky;
+    const { skyCtx: g, dpr, ch } = this;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.drawImage(this.bg, 0, 0);
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.font = `600 ${Math.round(ch * 0.74)}px ${this.fontFamily}`;
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    this.tree.draw(g, t, this.sharkFlag);
+    this.skyDrawnAt = t;
+    return this.sky;
+  }
+
   render(world: World, dt: number) {
     const { ctx, dpr, cols, ch } = this;
     if (cols === 0) return;
@@ -502,7 +536,7 @@ export class AsciiRenderer {
     this.diffuse(dt);
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.drawImage(this.bg, 0, 0);
+    ctx.drawImage(this.theme.tree ? this.paintSky(t) : this.bg, 0, 0);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     this.markFish(world);
@@ -514,10 +548,7 @@ export class AsciiRenderer {
 
     this.drawHeat();
     this.drawFish();
-    if (this.theme.tree) {
-      this.tree.draw(ctx, t, this.sharkFlag);
-      this.tree.drawLeaves(ctx, t, dt);
-    }
+    if (this.theme.tree) this.tree.drawLeaves(ctx, t, dt);
     this.drawSharks(t);
     // Farther birds first, so one turning in front passes over the other.
     const birds = world.sharks.filter((sh) => sh.bird).sort((a, b) => b.bird!.z - a.bird!.z);
@@ -1040,7 +1071,7 @@ export class AsciiRenderer {
    */
   private drawDots(t: number) {
     const { ctx, cols, rows, cw, ch, dotKind, dotPhase, dotFreq, energy, sharkFlag, sharkShadow, fishStamp, frameId } = this;
-    const { bucketOf, bucketOrder, bucketCounts } = this;
+    const { bucketOf, bucketOrder, bucketCounts, bucketStarts: starts, bucketCursor: cursor } = this;
     const n = cols * rows;
     const SKIP = bucketCounts.length - 1;
     bucketCounts.fill(0);
@@ -1071,9 +1102,8 @@ export class AsciiRenderer {
     }
 
     // Counting sort cells by bucket.
-    const starts = new Int32Array(bucketCounts.length);
     for (let b = 1; b < bucketCounts.length; b++) starts[b] = starts[b - 1] + bucketCounts[b - 1];
-    const cursor = starts.slice();
+    cursor.set(starts);
     for (let i = 0; i < n; i++) {
       const b = bucketOf[i];
       if (b !== SKIP) bucketOrder[cursor[b]++] = i;
