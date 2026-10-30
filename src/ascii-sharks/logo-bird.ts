@@ -1,11 +1,12 @@
 /**
  * How a bird looks: the Birpe logo bird, traced from the brand sheet and painted in the
  * logo's three blues. The two logo views are turned into a solid bird, so it can be seen
- * from any angle as it turns, banks and rolls. Birds are small, so they're painted on a
- * sub-grid three times finer than the character cells (each cell split 2 × 3), with soft
- * edges. Nothing here moves a bird; bird-brain.ts does that.
+ * from any angle as it turns, banks and rolls. It's drawn in ASCII like the rest of the sky,
+ * in characters finer than the page's grid since birds are small, and that lattice of
+ * characters rides along with the bird, so it glides instead of hopping cell to cell.
+ * Nothing here moves a bird; bird-brain.ts does that.
  */
-import { clamp, smoothstep, TAU } from "./math";
+import { clamp, hash3, smoothstep, TAU } from "./math";
 import type { Shark } from "./world";
 
 /**
@@ -320,34 +321,20 @@ function castWing(ox: number, oy: number, oz: number, dx: number, dy: number, dz
   return Infinity;
 }
 
-/** Samples per sub-cell, besides its centre, for soft edges. */
+/** Samples per character, besides its centre, for its coverage at the edges. */
 const SUBSAMPLES = [0.25, 0.25, 0.75, 0.25, 0.25, 0.75, 0.75, 0.75];
-const COLORS = [LOGO_BODY, LOGO_BODY, LOGO_DARK, LOGO_WING];
+const rgb = (c: [number, number, number]) => `rgb(${c.join(",")})`;
+const COLORS = ["", rgb(LOGO_BODY), rgb(LOGO_DARK), rgb(LOGO_WING)];
+/** A bird's characters, as a fraction of the page's cell size. */
+const GLYPH_SCALE = 0.6;
+/** Solid characters by layer: dense on the body, densest on its overlap, airier on the wings. */
+const GLYPHS = ["", "#8%@", "@#M&", "*+=x"];
+/** Characters for the outline, by how much of the character the bird covers. */
+const EDGE_LIGHT = ".'`,";
+const EDGE_HEAVY = ":;";
 
-/**
- * Each bird paints into its own little image, one pixel per sub-cell, which is drawn
- * onto the sky scaled up in a single call. It remembers what it was painted from, so a
- * bird that hasn't changed (sitting on the tree) is just drawn again, with no ray work.
- */
-type Sprite = { canvas: OffscreenCanvas | HTMLCanvasElement; image: ImageData; drawn: number[]; cols: number; rows: number };
-const sprites = new WeakMap<Shark, Sprite>();
-/** Centre labels of the sub-cells, with a one-cell empty border; shared, grown as needed. */
+/** Centre labels of the characters, with a one-cell empty border; shared, grown as needed. */
 let labels = new Uint8Array(0);
-
-function makeCanvas(w: number, h: number) {
-  if (typeof OffscreenCanvas !== "undefined") return new OffscreenCanvas(w, h);
-  const c = document.createElement("canvas");
-  c.width = w;
-  c.height = h;
-  return c;
-}
-
-/** True when every number matches what was drawn last time, to well under a pixel. */
-function unchanged(drawn: number[], now: number[]) {
-  if (drawn.length < now.length) return false;
-  for (let k = 0; k < now.length; k++) if (Math.abs(drawn[k] - now[k]) > 1e-4) return false;
-  return true;
-}
 
 /**
  * Draw a bird as a solid seen from the front of the screen, along its body axes, so it
@@ -356,9 +343,9 @@ function unchanged(drawn: number[], now: number[]) {
  * through level to below the body and back, held up in a shallow V while gliding),
  * flaring to land (wings raised, a touch swept forward), and perched (folded along the body).
  *
- * Kept light: one ray per sub-cell, with the extra soft-edge samples only along the
- * outline; rays leap across empty space in the body; one image draw per bird; and an
- * unchanged bird isn't recomputed at all.
+ * Every position is taken relative to the bird, so its characters sit still on it and it
+ * moves by fractions of a pixel. Kept light: one ray per character, with the extra samples
+ * only along the outline, and rays leap across empty space in the body.
  */
 export function drawBird(ctx: CanvasRenderingContext2D, sh: Shark, cw: number, ch: number) {
   const b = sh.bird!;
@@ -382,17 +369,10 @@ export function drawBird(ctx: CanvasRenderingContext2D, sh: Shark, cw: number, c
   // Each downstroke lifts the body a little, so the bird rides its wingbeat.
   const cx = b.x;
   const cy = b.y - amp * L * 0.035 * (down - 0.5);
-  const sw = cw / 2;
-  const sy = ch / 3;
+  const sw = cw * GLYPH_SCALE;
+  const sy = ch * GLYPH_SCALE;
 
-  let sprite = sprites.get(sh);
-  const now = [cx, cy, L, fx, fy, fz, ux, uy, uz, dihedral, sweep, b.pose, sw, sy];
-  if (sprite && unchanged(sprite.drawn, now)) {
-    blit(ctx, sprite, cx, cy, sw, sy);
-    return;
-  }
-
-  // At least a sub-cell thick edge-on, so the one ray per sub-cell can't slip past it.
+  // At least a character thick edge-on, so the one ray per character can't slip past it.
   const wingSlab = Math.max(WING_SLAB, (0.5 * Math.max(sw, sy)) / L);
   const wing = (side: number): Wing => ({
     side,
@@ -406,11 +386,11 @@ export function drawBird(ctx: CanvasRenderingContext2D, sh: Shark, cw: number, c
   });
   const wings = [wing(1), wing(-1)];
 
-  // 0 empty, 1 body, 2 dark overlap, 3 wing. Each sample is a ray into the screen,
-  // taken into the bird's own axes; the nearest surface wins.
+  // 0 empty, 1 body, 2 dark overlap, 3 wing. Each sample is a ray into the screen, from a
+  // point relative to the bird, taken into the bird's own axes; the nearest surface wins.
   const layer = (px: number, py: number) => {
-    const qx = (px - cx) / L;
-    const qy = (py - cy) / L;
+    const qx = px / L;
+    const qy = py / L;
     const ox = qx * fx + qy * fy;
     const oy = qx * rx + qy * ry;
     const oz = qx * ux + qy * uy;
@@ -448,44 +428,36 @@ export function drawBird(ctx: CanvasRenderingContext2D, sh: Shark, cw: number, c
   }
   // The thickness of an edge-on wing pokes a little past its corners.
   const pad = wingSlab * L;
-  const c0 = Math.floor((cx + minX - pad) / sw);
-  const c1 = Math.ceil((cx + maxX + pad) / sw);
-  const r0 = Math.floor((cy + minY - pad) / sy);
-  const r1 = Math.ceil((cy + maxY + pad) / sy);
+  const c0 = Math.floor((minX - pad) / sw);
+  const c1 = Math.ceil((maxX + pad) / sw);
+  const r0 = Math.floor((minY - pad) / sy);
+  const r1 = Math.ceil((maxY + pad) / sy);
   const cols = c1 - c0 + 1;
   const rows = r1 - r0 + 1;
 
-  if (!sprite || sprite.image.width < cols || sprite.image.height < rows) {
-    const w = Math.max(cols, sprite?.image.width ?? 0) + 8;
-    const h = Math.max(rows, sprite?.image.height ?? 0) + 8;
-    sprite = { canvas: makeCanvas(w, h), image: new ImageData(w, h), drawn: [], cols: 0, rows: 0 };
-    sprites.set(sh, sprite);
-  }
-  const { image } = sprite;
-  const data = image.data;
-  const stride = image.width;
-
-  // First pass: one ray through the centre of every sub-cell the hull touches.
+  // First pass: one ray through the centre of every character the hull touches.
   const lw = cols + 2;
   if (labels.length < lw * (rows + 2)) labels = new Uint8Array(lw * (rows + 2) * 2);
   else labels.fill(0, 0, lw * (rows + 2));
   const outline = hull(corners);
   for (let r = 0; r < rows; r++) {
     const y = (r0 + r + 0.5) * sy;
-    const top = (r0 + r) * sy - cy - pad;
+    const top = (r0 + r) * sy - pad;
     const [lo, hi] = hullSpan(outline, top, top + sy + pad * 2);
     if (lo > hi) continue;
-    const from = Math.max(0, Math.floor((cx + lo - pad) / sw) - c0);
-    const to = Math.min(cols - 1, Math.floor((cx + hi + pad) / sw) - c0);
+    const from = Math.max(0, Math.floor((lo - pad) / sw) - c0);
+    const to = Math.min(cols - 1, Math.floor((hi + pad) / sw) - c0);
     for (let c = from; c <= to; c++) labels[(r + 1) * lw + c + 1] = layer((c0 + c + 0.5) * sw, y);
   }
 
-  // Second pass: a sub-cell whose neighbours all agree with it is solid (or empty) through;
-  // only those along an outline or a colour edge take the extra samples for a soft edge.
+  // Second pass: pick each character. One whose neighbours all agree with it is solid (or
+  // empty) through; those along an outline take the extra samples to see how much is covered.
+  const font = ctx.font;
+  ctx.font = font.replace(/\d+(\.\d+)?px/, `${Math.round(ch * 0.74 * GLYPH_SCALE)}px`);
   const votes = [0, 0, 0, 0];
+  let color = "";
   for (let r = 0; r < rows; r++) {
-    let p = (r * stride) * 4;
-    for (let c = 0; c < cols; c++, p += 4) {
+    for (let c = 0; c < cols; c++) {
       const at = (r + 1) * lw + c + 1;
       const center = labels[at];
       const edge =
@@ -493,33 +465,25 @@ export function drawBird(ctx: CanvasRenderingContext2D, sh: Shark, cw: number, c
         labels[at - 1] !== center || labels[at + 1] !== center ||
         labels[at + lw - 1] !== center || labels[at + lw] !== center || labels[at + lw + 1] !== center;
       let top = center;
-      let alpha = center ? 255 : 0;
+      let hits = center ? 5 : 0;
       if (edge) {
         const x = (c0 + c) * sw;
         const y = (r0 + r) * sy;
         votes[0] = votes[1] = votes[2] = votes[3] = 0;
         votes[center]++;
         for (let k = 0; k < SUBSAMPLES.length; k += 2) votes[layer(x + SUBSAMPLES[k] * sw, y + SUBSAMPLES[k + 1] * sy)]++;
-        const hits = votes[1] + votes[2] + votes[3];
+        hits = votes[1] + votes[2] + votes[3];
         top = center || (votes[3] >= votes[1] && votes[3] >= votes[2] ? 3 : votes[2] >= votes[1] ? 2 : 1);
-        alpha = Math.round((hits / 5) * 255);
       }
-      const color = COLORS[top];
-      data[p] = color[0];
-      data[p + 1] = color[1];
-      data[p + 2] = color[2];
-      data[p + 3] = alpha;
+      if (!hits) continue;
+      // Hashed on the bird's own lattice, so each character stays put on it.
+      const key = (hash3(c0 + c, r0 + r, sh.id) * 4294967295) >>> 0;
+      const set = hits < 3 ? EDGE_LIGHT : hits < 4 ? EDGE_HEAVY : GLYPHS[top];
+      if (COLORS[top] !== color) ctx.fillStyle = color = COLORS[top];
+      ctx.fillText(set[key % set.length], cx + (c0 + c + 0.5) * sw, cy + (r0 + r + 0.5) * sy);
     }
   }
-
-  const sctx = sprite.canvas.getContext("2d") as OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
-  sctx.putImageData(image, 0, 0, 0, 0, cols, rows);
-  sprite.cols = cols;
-  sprite.rows = rows;
-  // Where the image sits relative to the bird, so a cache hit lands it in the same place.
-  now.push(c0 * sw - cx, r0 * sy - cy);
-  sprite.drawn = now;
-  blit(ctx, sprite, cx, cy, sw, sy);
+  ctx.font = font;
 }
 
 /** Convex hull of flat [x, y, …] points, as a flat closed loop (monotone chain). */
@@ -561,13 +525,4 @@ function hullSpan(loop: number[], y0: number, y1: number) {
     }
   }
   return extent;
-}
-
-/** Draw a bird's image onto the sky, one sub-cell per pixel, kept crisp. */
-function blit(ctx: CanvasRenderingContext2D, sprite: Sprite, cx: number, cy: number, sw: number, sy: number) {
-  const { drawn, cols, rows } = sprite;
-  const smoothing = ctx.imageSmoothingEnabled;
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(sprite.canvas, 0, 0, cols, rows, cx + drawn[drawn.length - 2], cy + drawn[drawn.length - 1], cols * sw, rows * sy);
-  ctx.imageSmoothingEnabled = smoothing;
 }
