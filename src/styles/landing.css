@@ -2,6 +2,16 @@
   scroll-behavior: smooth;
 }
 
+/* ASCII sharks swim behind the word; the canvas takes its glyphs from this font. */
+.hero-ocean {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  font-family: ui-monospace, Menlo, monospace;
+}
+
 .birpe-field {
   position: absolute;
   inset: 0;

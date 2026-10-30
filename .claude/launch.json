@@ -4,14 +4,51 @@
     {
       "name": "birpe-dev",
       "runtimeExecutable": "./node_modules/.bin/vite",
-      "runtimeArgs": ["--host", "127.0.0.1", "--port", "3000", "--strictPort"],
+      "runtimeArgs": [
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "3000",
+        "--strictPort"
+      ],
       "port": 3000
+    },
+    {
+      "name": "birpe-aurora",
+      "runtimeExecutable": "./node_modules/.bin/vite",
+      "runtimeArgs": [
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "3010",
+        "--strictPort"
+      ],
+      "port": 3010
     },
     {
       "name": "birpe-cloudflare",
       "runtimeExecutable": "./node_modules/.bin/wrangler",
-      "runtimeArgs": ["dev", "--ip", "127.0.0.1", "--port", "8787"],
+      "runtimeArgs": [
+        "dev",
+        "--ip",
+        "127.0.0.1",
+        "--port",
+        "8787"
+      ],
       "port": 8787
+    },
+    {
+      "name": "birpe-com-sharks",
+      "runtimeExecutable": "./birpe-com/node_modules/.bin/vite",
+      "runtimeArgs": [
+        "birpe-com",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "3120",
+        "--strictPort"
+      ],
+      "port": 3120
     }
   ]
 }

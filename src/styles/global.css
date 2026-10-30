@@ -1,4 +1,14 @@
 @import 'tailwindcss';
+
+/* Aurora lights: a slow transform-only drift, timed per light inline. */
+@theme{
+ --animate-aurora:aurora 20s ease-in-out infinite;
+ @keyframes aurora{
+  0%,100%{transform:translate3d(0,0,0) scale(1)}
+  33%{transform:translate3d(28%,18%,0) scale(1.2)}
+  66%{transform:translate3d(-14%,32%,0) scale(.9)}
+ }
+}
 :root{font-family:Arial,sans-serif;color:#142033;background:#fff}*{box-sizing:border-box}body{margin:0}button,a,select{-webkit-tap-highlight-color:transparent}button,select{border-radius:0!important}
 
 /* Liquid glass controls: distortion, tint and edge-light live on separate layers. */
