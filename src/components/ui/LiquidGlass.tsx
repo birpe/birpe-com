@@ -5,11 +5,6 @@ type LiquidGlassLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   tone?: "light" | "dark";
 };
 
-type LiquidGlassButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  children?: React.ReactNode;
-  tone?: "light" | "dark";
-};
-
 type LiquidGlassPillProps = React.HTMLAttributes<HTMLSpanElement> & {
   tone?: "light" | "dark";
 };
@@ -91,20 +86,6 @@ export function LiquidGlassLink({
     <a {...props} className={`liquid-glass liquid-glass--${tone} ${className}`.trim()}>
       <GlassLayers>{children}</GlassLayers>
     </a>
-  );
-}
-
-export function LiquidGlassButton({
-  children,
-  className = "",
-  tone = "dark",
-  type = "button",
-  ...props
-}: LiquidGlassButtonProps) {
-  return (
-    <button {...props} type={type} className={`liquid-glass liquid-glass--${tone} ${className}`.trim()}>
-      <GlassLayers>{children}</GlassLayers>
-    </button>
   );
 }
 

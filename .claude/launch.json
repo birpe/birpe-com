@@ -4,7 +4,7 @@
     {
       "name": "birpe-dev",
       "runtimeExecutable": "./node_modules/.bin/vite",
-      "runtimeArgs": ["--host", "0.0.0.0", "--port", "3000", "--strictPort"],
+      "runtimeArgs": ["--host", "127.0.0.1", "--port", "3000", "--strictPort"],
       "port": 3000
     }
   ]

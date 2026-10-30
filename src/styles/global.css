@@ -1,9 +1,5 @@
 @import 'tailwindcss';
-:root{font-family:Arial,sans-serif;color:#142033;background:#fff;--background:#fff;--foreground:#142033;--primary:#276cf5;--primary-foreground:#fff;--radius:0}*{box-sizing:border-box}body{margin:0}button,a,select{-webkit-tap-highlight-color:transparent}button,select{border-radius:0!important}.wordmark{display:block;position:relative;width:102px;height:43px;overflow:hidden}.wordmark img{position:absolute;width:181%;max-width:none;left:-41.5%;top:-184%}.birpe-field{position:absolute;inset:0;background:radial-gradient(ellipse at 20% 12%,#3d9ff6 0,transparent 48%),radial-gradient(ellipse at 90% 70%,#1239c8 0,transparent 60%),linear-gradient(125deg,#2e8df4,#205ce7 55%,#1039c3);transform:translateZ(0) scale(var(--gp-field-scale,1));will-change:transform;backface-visibility:hidden}[data-slipstream-demo] [data-gp-content]{background-color:#1859d5}[data-slipstream-demo] [data-gp-select]{border-radius:0}[data-slipstream-demo] [data-sublime-support]{color:#576a82}[data-slipstream-demo] [data-sublime-eyebrow]{color:#586a80;letter-spacing:.04em}[data-slipstream-demo] [data-slipstream-copy] h2{max-width:min(48rem,100%);letter-spacing:-.03em;line-height:1.15}[data-slipstream-demo] [data-slipstream-feature] p{font-size:16px;line-height:1.65}[data-slipstream-demo] [data-gp-enter]{min-height:48px;font-size:14px;box-shadow:none!important}[data-slipstream-demo] [data-sublime-scroll]{font-size:12px}[data-slipstream-demo] [data-sublime-category]{font-size:14px}@media(max-width:480px){.wordmark{width:84px;height:36px}[data-slipstream-demo] [data-sublime-category]{font-size:12px}}
-
-.header-bird{display:block;position:relative;width:52px;height:36px;overflow:hidden}
-.header-bird img{position:absolute;width:134.7%;max-width:none;left:-17.4%;top:-48.7%}
-[data-demo-scroll]{scroll-behavior:smooth}.bird-guide{display:block;background:none;border:0;padding:8px;margin:-8px;cursor:pointer;transform:translate(var(--bird-x,0px),var(--bird-y,0px));transition:transform .5s ease-out}.bird-guide:focus-visible{outline:2px solid #276cf5;outline-offset:5px}.try-example-link{display:inline-flex;align-items:center;gap:clamp(12px,3vw,24px);padding:15px 20px;background:#fff;color:#174fba;text-decoration:none;font-size:15px}.try-example-link:hover{background:#e7f2ff}.try-example-link:focus-visible{outline:2px solid white;outline-offset:5px}@media(prefers-reduced-motion:reduce){[data-demo-scroll]{scroll-behavior:auto}.bird-guide{transform:none!important}}
+:root{font-family:Arial,sans-serif;color:#142033;background:#fff}*{box-sizing:border-box}body{margin:0}button,a,select{-webkit-tap-highlight-color:transparent}button,select{border-radius:0!important}
 
 /* Liquid glass controls: distortion, tint and edge-light live on separate layers. */
 .liquid-glass-filter{position:absolute;width:0;height:0;pointer-events:none}
@@ -40,25 +36,10 @@
 .liquid-glass:active{transform:scale(.97)}
 .liquid-glass--light{color:#142033!important}
 .liquid-glass--dark{color:#fff}
-.try-example-link{min-width:min(190px,100%);max-width:100%;box-sizing:border-box}
-[data-slipstream-demo] [data-gp-enter].liquid-glass{box-shadow:0 10px 28px rgba(12,42,82,.12),0 1px 2px rgba(12,42,82,.08)!important}
-[data-slipstream-demo] [data-gp-enter].liquid-glass:hover{box-shadow:0 14px 32px rgba(12,42,82,.15),0 2px 3px rgba(12,42,82,.08)!important}
-[data-slipstream-demo] [data-gp-select]{border-radius:999px!important;background:rgba(244,248,255,.78);border:1px solid #dce8fa;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:0 16px}
 @media(prefers-reduced-motion:reduce){.liquid-glass{transition:none!important;transform:none!important}}
 
-/* Animated landing scene. */
+/* Cloud backdrop. */
 .cloudscape{position:relative;display:flex;width:100%;align-items:center;justify-content:center;overflow:hidden}
-.hero-sky{position:absolute;inset:0;pointer-events:none;opacity:var(--gp-caption,1)}
-.animated-bird{display:block;position:relative;aspect-ratio:16/9;overflow:hidden;contain:layout paint}
-.animated-bird video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .16s ease}
-.animated-bird img{position:absolute;width:100%;height:auto;left:0;top:50%;transform:translateY(-50%);transition:opacity .16s ease}
-.animated-bird[data-playing=true] video{opacity:1}
-.animated-bird[data-playing=true] img{opacity:0}
-@media(prefers-reduced-motion:reduce){.animated-bird video{display:none}.animated-bird[data-playing=true] img{opacity:1}}
-[data-slipstream-demo] [data-sublime-category],[data-slipstream-demo] [data-sublime-eyebrow]{color:#123f8f}
 .cloudscape__canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;transition:opacity .45s ease}
-[data-slipstream-copy]{position:relative;z-index:1}
-
-/* Keep the CTA readable over the blue content panel. */
-.try-example-link.liquid-glass--dark{color:#fff}
+.hero-sky{position:absolute;inset:0;pointer-events:none;opacity:var(--gp-caption,1)}
 
