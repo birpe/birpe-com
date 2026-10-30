@@ -569,6 +569,8 @@ export class AsciiRenderer {
       if (i >= 0) energy[i] = Math.min(1.6, energy[i] + (0.012 + f.alarm * 0.03) * k);
     }
     for (const sh of world.sharks) {
+      // A bird sitting on a branch stirs nothing.
+      if (sh.speed <= 0) continue;
       // The tail sweeps the most water.
       for (let n = SHARK_NODES - 6; n < SHARK_NODES; n++) {
         const i = this.cellIndex(sh.nodes[n * 2], sh.nodes[n * 2 + 1]);

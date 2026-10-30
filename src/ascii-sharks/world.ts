@@ -13,7 +13,7 @@
  * so stragglers get picked off. Eaten fish come back later as new schools
  * swimming in from the edges, which keeps the population steady.
  */
-import { flyBird, newBird, setPerches, type BirdState, type Perch } from "./bird-brain";
+import { flyBird, newBird, refitBirds, setPerches, type BirdState, type Perch } from "./bird-brain";
 import { angleDiff, clamp, current, rand, randInt, TAU } from "./math";
 import { pickSpecies, SPECIES } from "./species";
 
@@ -88,6 +88,9 @@ const FISH_COHESION_K = 1;
 const FISH_FLEE_K = 1100;
 const BLIND_COS = -0.6; // ~127° either side of the heading is visible
 
+/** The length of a size-1 shark in a sky this big. */
+const baseLength = (W: number, H: number) => clamp(Math.min(W, H) * 0.44, 170, 430);
+
 export class World {
   width = 0;
   height = 0;
@@ -123,6 +126,7 @@ export class World {
 
   resize(width: number, height: number, cellW: number, cellH: number) {
     const first = this.width === 0;
+    const { width: prevW, height: prevH } = this;
     this.width = width;
     this.height = height;
     // Spacing is set in grid cells so every fish lands in its own cell.
@@ -139,18 +143,21 @@ export class World {
       f.x = clamp(f.x, 0, width);
       f.y = clamp(f.y, 0, height);
     }
+    if (width === prevW && height === prevH) return;
+    const grow = baseLength(width, height) / baseLength(prevW, prevH);
+    for (const sh of this.sharks) sh.length *= grow;
+    refitBirds(this, width / prevW, height / prevH);
   }
 
   seed() {
     const { width: W, height: H } = this;
     const minSide = Math.min(W, H);
-    const baseLength = clamp(minSide * 0.44, 170, 430);
     const sharkCount = this.sharkSpecs.length;
 
     this.sharks = [];
     for (let i = 0; i < sharkCount; i++) {
       const { kind, size } = this.sharkSpecs[i];
-      const length = baseLength * size;
+      const length = baseLength(W, H) * size;
       const orbitRadius = minSide * rand(0.28, 0.4);
       const a = (i / sharkCount) * TAU + rand(-0.4, 0.4);
       const orbitDir: 1 | -1 = i % 2 === 0 ? 1 : -1;

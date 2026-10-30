@@ -328,8 +328,9 @@ export default function GlyphPortal({
     const observer = new ResizeObserver(resize);
     observer.observe(section);
     if (root) observer.observe(root);
-    const visibility = new IntersectionObserver(([entry]) => {
-      active = entry.isIntersecting;
+    const visibility = new IntersectionObserver((entries) => {
+      // Several changes can arrive at once; the last is the current one.
+      active = entries[entries.length - 1].isIntersecting;
       if (active) { dirty = true; schedule(); }
       else if (raf) { cancelAnimationFrame(raf); raf = 0; }
     }, { root, rootMargin: "100% 0px" });

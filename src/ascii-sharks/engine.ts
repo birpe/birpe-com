@@ -18,6 +18,7 @@ export class OceanEngine {
   private resizeObserver: ResizeObserver;
   private intersectionObserver: IntersectionObserver;
   private disposed = false;
+  private size = { width: 0, height: 0, dpr: 0 };
 
   /** `speed` scales simulated time: 0.5 runs the whole ocean at half pace. */
   constructor(private canvas: HTMLCanvasElement, sharks?: SharkSpec[], theme?: OceanTheme, private speed = 1) {
@@ -28,8 +29,9 @@ export class OceanEngine {
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas);
-    this.intersectionObserver = new IntersectionObserver(([entry]) => {
-      this.visible = entry.isIntersecting;
+    this.intersectionObserver = new IntersectionObserver((entries) => {
+      // Several changes can arrive at once; the last is the current one.
+      this.visible = entries[entries.length - 1].isIntersecting;
       this.schedule();
     });
     this.intersectionObserver.observe(canvas);
@@ -64,10 +66,22 @@ export class OceanEngine {
     const rect = this.canvas.getBoundingClientRect();
     if (rect.width < 1 || rect.height < 1) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // The observer also fires when it starts watching; nothing has changed, so keep the picture.
+    const { size } = this;
+    if (rect.width === size.width && rect.height === size.height && dpr === size.dpr) return;
+    this.size = { width: rect.width, height: rect.height, dpr };
     this.renderer.resize(rect.width, rect.height, dpr);
     this.world.resize(rect.width, rect.height, this.renderer.cellWidth, this.renderer.cellHeight);
     this.world.setPerches(this.renderer.perches);
+    // Sizing a canvas blanks it, and the observer runs after this frame's animation callback:
+    // draw now, or the sky shows black until the next frame.
     if (this.reducedMotion.matches) this.drawStill();
+    else this.renderer.render(this.world, 0);
+  }
+
+  /** Whether the hero has faded the sky out while it scrolls into the word. */
+  private faded() {
+    return getComputedStyle(this.canvas.parentElement ?? this.canvas).opacity === "0";
   }
 
   private schedule() {
@@ -81,7 +95,7 @@ export class OceanEngine {
     // The first frame's timestamp can predate schedule()'s performance.now().
     const dt = Math.min(0.1, Math.max(0, (now - this.last) / 1000)) * this.speed;
     this.last = now;
-    if (dt > 0) {
+    if (dt > 0 && !this.faded()) {
       // Advance by exactly the frame's time so motion stays even at 90/120 Hz,
       // where a fixed 60 Hz step would leave some frames unmoved.
       const steps = Math.ceil(dt / STEP);

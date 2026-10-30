@@ -171,6 +171,21 @@ export function setPerches(world: Sky, points: Perch[]) {
 }
 
 /**
+ * The sky changed size by (kx, ky): keep each bird at the same place in it, and have it
+ * make a new plan, since its old waypoint may now be off the edge.
+ */
+export function refitBirds(world: Sky, kx: number, ky: number) {
+  assignTerritories(world);
+  for (const sh of world.sharks) {
+    const b = sh.bird;
+    if (!b) continue;
+    b.x *= kx;
+    b.y *= ky;
+    if (b.mode === "patrol" || b.mode === "soar") b.timer = 0;
+  }
+}
+
+/**
  * Give each bird its own band of altitude across the whole width of the sky, with a little
  * overlap, so they have room for long passes and usually cross at different heights.
  */
@@ -357,7 +372,8 @@ export function flyBird(world: Sky, sh: Shark, dt: number) {
   if (b.mode === "perched") {
     const p = world.perches[b.perch];
     b.pose = 2;
-    b.scale = PERCH_SCALE;
+    // Finish shrinking on the branch, feet planted, rather than popping to size on touchdown.
+    b.scale += (PERCH_SCALE - b.scale) * Math.min(1, dt * 4);
     b.energy = Math.min(1, b.energy + dt * 0.07);
     if (p) {
       b.x = p.x;
@@ -376,6 +392,10 @@ export function flyBird(world: Sky, sh: Shark, dt: number) {
       b.mode = "takeoff";
       b.timer = 1.4;
       b.face = b.fwd[0] >= 0 ? 1 : -1;
+      // Climb out toward open sky if the way it's facing would carry it off the screen.
+      const ahead = b.face === 1 ? b.home.x1 - b.x : b.x - b.home.x0;
+      const behind = b.home.x1 - b.home.x0 - ahead;
+      if (ahead < S * b.timer + L * TURN_RADIUS && behind > ahead) b.face = b.face === 1 ? -1 : 1;
       b.vx = b.fwd[0] * S * 0.35;
       b.vy = -S * 0.45;
       b.vz = b.fwd[2] * S * 0.35;
