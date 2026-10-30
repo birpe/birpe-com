@@ -31,8 +31,9 @@
 .liquid-glass__distortion,.liquid-glass__tint,.liquid-glass__shine{position:absolute;inset:0;border-radius:inherit;pointer-events:none}
 .liquid-glass__distortion{
  z-index:0;
- backdrop-filter:blur(5px) saturate(112%);
+ /* Prefixed first: the other way round, the minifier drops the unprefixed one that Chrome needs. */
  -webkit-backdrop-filter:blur(5px) saturate(112%);
+ backdrop-filter:blur(5px) saturate(112%);
  /* Backdrop blur and edge highlights avoid a second SVG filter render pass. */
 }
 .liquid-glass__tint{z-index:1;background:rgba(255,255,255,.08)}
