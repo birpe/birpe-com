@@ -97,12 +97,12 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
   }, []);
   return (
     <main ref={page} onPointerMove={onMainPointerMove} data-demo-scroll data-slipstream-demo tabIndex={0} aria-label="Birpe. Scroll into a lighter day."
-      style={{ width: "100%", height: "100svh", overflowX: "clip", overflowY: "auto", background: "#fff", containerType: "inline-size", fontFamily: "Arial, sans-serif", WebkitOverflowScrolling: "touch", scrollPaddingBottom: "env(safe-area-inset-bottom)" }}>
+      style={{ width: "100%", height: "100svh", overflowX: "clip", overflowY: "auto", background: "#fff", containerType: "inline-size", fontFamily: family, WebkitOverflowScrolling: "touch", scrollPaddingBottom: "env(safe-area-inset-bottom)" }}>
       <div id="top" />
       <h1 className="sr-only">Birpe — Your everyday AI agent</h1>
       <LiquidGlassFilter />
-      {face ? <GlyphPortal word={s.word} fontFamily={face} fontWeight={500} style={{ fontFamily: "Arial, sans-serif", "--gp-field": "#1859d5", "--gp-ink": "#142033", "--gp-foreground": "#ffffff" }} backdrop={<AsciiOcean className="hero-ocean" sharks={oceanSharks} theme={BIRPE_THEME} speed={0.55} logoIntro={logoIntro} />} background={<Aurora className="birpe-field" intensity={0.55} duration={18} />} scrollLength={s.scrollLength} interactive={s.interactive} annotations={s.annotations} enterLabel="Scroll here" enterInteractive={false} align="left" wordFit={heroWordFit} front={
-          <div data-sublime-header>{!logoFlown && <button ref={bird} className="bird-guide" aria-label="Give the bird a little lift" onClick={()=>{if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;bird.current?.animate([{translate:'0 0',rotate:'0deg'},{translate:'9px -15px',rotate:'-10deg'},{translate:'0 0',rotate:'0deg'}],{duration:600,easing:'ease-in-out'});}}><span className="header-bird"><img ref={logoImage} src="/assets/images/bird-logo.png" alt="" /></span></button>}<span data-sublime-category>Your everyday AI agent</span></div>
+      {face ? <GlyphPortal word={s.word} fontFamily={face} fontWeight={500} style={{ fontFamily: family, "--gp-field": "#1859d5", "--gp-ink": "#142033", "--gp-foreground": "#ffffff" }} backdrop={<AsciiOcean className="hero-ocean" sharks={oceanSharks} theme={BIRPE_THEME} speed={0.55} logoIntro={logoIntro} />} background={<Aurora className="birpe-field" intensity={0.55} duration={18} />} scrollLength={s.scrollLength} interactive={s.interactive} annotations={s.annotations} enterLabel="Scroll here" enterInteractive={false} align="left" wordFit={heroWordFit} front={
+          <div data-sublime-header>{!logoFlown && <button ref={bird} className="bird-guide" aria-label="Give the bird a little lift" onClick={()=>{if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;bird.current?.animate([{translate:'0 0',rotate:'0deg'},{translate:'9px -15px',rotate:'-10deg'},{translate:'0 0',rotate:'0deg'}],{duration:600,easing:'ease-in-out'});}}><span className="header-bird"><img ref={logoImage} src="/assets/images/bird-logo.png" alt="" /></span></button>}</div>
         }>
         <div data-slipstream-copy>
           <h2>Less on your mind. More room for life.</h2>
@@ -110,9 +110,9 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
             Coming soon <span aria-hidden="true">↓</span>
           </LiquidGlassLink>
           <div data-slipstream-features>
-            <div data-slipstream-feature><h3><span data-slipstream-no>01</span>Find your focus</h3><p>Turn a crowded to-do list into a clear plan. Find the next step without the mental clutter.</p></div>
-            <div data-slipstream-feature><h3><span data-slipstream-no>02</span>Make sense of more</h3><p>Get the useful details from long notes and information, without the overload.</p></div>
-            <div data-slipstream-feature><h3><span data-slipstream-no>03</span>Take back your time</h3><p>Bring a little ease to everyday tasks. Save your energy for the things that matter.</p></div>
+            <div data-slipstream-feature><h3>Find your focus</h3><p>Turn a crowded to-do list into a clear plan. Find the next step without the mental clutter.</p></div>
+            <div data-slipstream-feature><h3>Make sense of more</h3><p>Get the useful details from long notes and information, without the overload.</p></div>
+            <div data-slipstream-feature><h3>Take back your time</h3><p>Bring a little ease to everyday tasks. Save your energy for the things that matter.</p></div>
           </div>
         </div>
       </GlyphPortal> : (
@@ -127,7 +127,7 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
           role="status"
         />
       )}
-      {face && <StickerSlapFooter />}
+      {face && <StickerSlapFooter fontSans={family} />}
     </main>
   );
 }

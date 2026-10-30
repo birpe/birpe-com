@@ -45,7 +45,6 @@
   min-height: 48px;
   padding: 0 22px;
   gap: 30px;
-  font-family: "Birpe Rounded", Arial, sans-serif;
   font-size: 14px;
   font-weight: 500;
 }
@@ -69,14 +68,6 @@
   align-items: center;
   justify-content: space-between;
   gap: clamp(12px, 3cqw, 24px);
-}
-
-[data-sublime-category] {
-  /* Stays at the right once the logo has flown. */
-  margin-left: auto;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #123f8f;
 }
 
 .bird-guide {
@@ -132,9 +123,9 @@
   margin: 0;
   color: inherit;
   font-size: clamp(1.75rem, 1.05rem + 2.4cqw, 3.75rem);
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.15;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 
@@ -158,7 +149,7 @@
 }
 
 [data-slipstream-feature] {
-  border-top: 1px solid rgba(251, 251, 250, 0.22);
+  border-top: 1px solid rgba(255, 255, 255, 0.24);
   padding-top: 1.1rem;
 }
 
@@ -173,24 +164,9 @@
 
 [data-slipstream-feature] p {
   margin: 0.55rem 0 0;
-  color: rgba(251, 251, 250, 0.85);
+  color: #dbe7ff;
   font-size: 16px;
   line-height: 1.65;
-}
-
-[data-slipstream-no] {
-  display: inline-block;
-  margin-right: 0.7rem;
-  color: rgba(251, 251, 250, 0.85);
-  font: 500 0.75rem ui-monospace, monospace;
-  letter-spacing: 0.08em;
-  transform: translateY(-0.1em);
-}
-
-@media (max-width: 480px) {
-  [data-sublime-category] {
-    font-size: 12px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

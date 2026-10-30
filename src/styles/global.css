@@ -9,7 +9,7 @@
   66%{transform:translate3d(-14%,32%,0) scale(.9)}
  }
 }
-:root{font-family:Arial,sans-serif;color:#142033;background:#fff}*{box-sizing:border-box}body{margin:0}button,a,select{-webkit-tap-highlight-color:transparent}button,select{border-radius:0!important}
+:root{font-family:"Birpe Rounded",Arial,sans-serif;font-synthesis:none;color:#142033;background:#fff}*{box-sizing:border-box}body{margin:0}button,a,select{-webkit-tap-highlight-color:transparent}button,select{border-radius:0!important}
 
 /* Liquid glass controls: distortion, tint and edge-light live on separate layers. */
 .liquid-glass-filter{position:absolute;width:0;height:0;pointer-events:none}
