@@ -13,7 +13,7 @@
  * so stragglers get picked off. Eaten fish come back later as new schools
  * swimming in from the edges, which keeps the population steady.
  */
-import { flyBird, newBird, refitBirds, setPerches, type BirdState, type Perch } from "./bird-brain";
+import { flyBird, launchBird, newBird, parkBird, refitBirds, releaseBird, setPerches, type BirdState, type Perch } from "./bird-brain";
 import { angleDiff, clamp, current, rand, randInt, TAU } from "./math";
 import { pickSpecies, SPECIES } from "./species";
 
@@ -104,6 +104,9 @@ export class World {
   /** Per perch: the id of the bird sitting on (or flying to) it, or 0. */
   perchTaken: number[] = [];
 
+  /** Seed the birds parked, to be launched or released later. */
+  holdBirds = false;
+
   /** Fish neighbourhood radius; the spatial hash bucket size matches it. */
   private perception = 60;
   /** Per-species personal space in px (x, y). */
@@ -193,6 +196,7 @@ export class World {
     }
     // Smaller (farther) sharks draw first so the big one swims over them.
     this.sharks.sort((a, b) => a.length - b.length);
+    if (this.holdBirds) for (const sh of this.sharks) if (sh.bird) parkBird(sh);
 
     const total = this.fishCount ?? clamp(Math.round((W * H) / 4400), 85, 340);
     this.fish = [];
@@ -240,6 +244,24 @@ export class World {
       f.vy += (dy / d) * k;
       f.alarm = 1;
     }
+  }
+
+  /**
+   * Send the parked birds off from one spot, `length` px long: the biggest goes first and swoops
+   * across the sky, and the next slips out from behind it and heads along the top.
+   */
+  launchBirds(x: number, y: number, length: number) {
+    const { width: W, height: H } = this;
+    const birds = this.sharks.filter((sh) => sh.bird?.mode === "parked").reverse();
+    birds.forEach((sh, k) => {
+      // A touch smaller, so the one behind doesn't show round the edges of the first.
+      if (k === 0) launchBird(this, sh, x, y, length, W * 0.5, H * 0.56, 0);
+      else launchBird(this, sh, x, y, length * 0.92, W * 0.9, Math.max(y, H * 0.1), 0.12);
+    });
+  }
+
+  releaseBirds() {
+    for (const sh of this.sharks) if (sh.bird) releaseBird(sh);
   }
 
   step(dt: number) {

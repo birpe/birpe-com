@@ -1,3 +1,4 @@
+import { LogoFlight, type LogoIntro } from "./logo-flight";
 import { AsciiRenderer, type OceanTheme } from "./renderer";
 import { World, type SharkSpec } from "./world";
 
@@ -35,13 +36,20 @@ export class OceanEngine {
   private lastInput = performance.now();
   /** Smoothed ms of work per drawn frame. */
   private load = 0;
+  /** The logo's take-off, while it's still going. */
+  private flight: LogoFlight | null = null;
 
   /** `speed` scales simulated time: 0.5 runs the whole ocean at half pace. */
-  constructor(private canvas: HTMLCanvasElement, sharks?: SharkSpec[], theme?: OceanTheme, private speed = 1) {
+  constructor(private canvas: HTMLCanvasElement, sharks?: SharkSpec[], theme?: OceanTheme, private speed = 1, intro?: LogoIntro) {
     this.world = new World(sharks);
     this.renderer = new AsciiRenderer(canvas, theme);
     this.renderer.setFontFamily(getComputedStyle(canvas).fontFamily);
     this.reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    // Reduced motion: the logo simply stays, and the birds are in the sky as ever.
+    if (intro && !this.reducedMotion.matches) {
+      this.world.holdBirds = true;
+      this.flight = new LogoFlight(intro, this.world, this.renderer, canvas);
+    }
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas);
@@ -98,9 +106,9 @@ export class OceanEngine {
     else this.renderer.render(this.world, 0);
   }
 
-  /** Whether the hero has faded the sky out while it scrolls into the word. */
-  private faded() {
-    return getComputedStyle(this.canvas.parentElement ?? this.canvas).opacity === "0";
+  /** How far the hero has faded the sky out while it scrolls into the word: 1 clear, 0 gone. */
+  private skyOpacity() {
+    return Number(getComputedStyle(this.canvas.parentElement ?? this.canvas).opacity);
   }
 
   private schedule() {
@@ -111,6 +119,8 @@ export class OceanEngine {
   }
 
   private targetFps(now: number) {
+    // Page load is when frames run heaviest, and the logo's take-off needs every one.
+    if (this.flight) return FULL_FPS;
     if (this.load > OVERLOADED_FRAME) return BUSY_FPS;
     const resting = now - this.lastInput > IDLE_AFTER || !document.hasFocus();
     return resting || this.load > HEAVY_FRAME ? REST_FPS : FULL_FPS;
@@ -121,12 +131,20 @@ export class OceanEngine {
     // Three quarters of the gap, so a screen just under the target rate isn't halved.
     if (now - this.last < 750 / this.targetFps(now)) return;
     // The first frame's timestamp can predate schedule()'s performance.now().
-    const dt = Math.min(0.1, Math.max(0, (now - this.last) / 1000)) * this.speed;
+    const elapsed = Math.min(0.1, Math.max(0, (now - this.last) / 1000));
+    const dt = elapsed * this.speed;
     this.last = now;
-    if (this.faded()) {
+    const opacity = this.skyOpacity();
+    // A small nudge isn't reason to cut the show: the logo and sky fade together until then.
+    if (this.flight?.pending && opacity < 0.5) {
+      this.flight.skip();
+      this.flight = null;
+    }
+    if (opacity === 0) {
       this.world.events.length = 0;
       return;
     }
+    if (this.flight && !this.flight.advance(elapsed)) this.flight = null;
     if (dt > 0) {
       const began = performance.now();
       // Advance by exactly the frame's time so motion stays even at any frame rate,
@@ -149,6 +167,8 @@ export class OceanEngine {
   private onMotionPreference = () => {
     if (this.reducedMotion.matches) {
       cancelAnimationFrame(this.raf);
+      this.flight?.cancel();
+      this.flight = null;
       this.drawStill();
     } else {
       this.schedule();

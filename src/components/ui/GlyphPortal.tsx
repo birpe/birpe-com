@@ -33,6 +33,10 @@ export type GlyphPortalProps = {
   enterLabel?: string;
   /** Render the opening cue as a link. Disable for a scroll-only visual hint. */
   enterInteractive?: boolean;
+  /** Where the word opens. "left" starts at the `[data-gp-viewport]` probe's padding-left, then glides to centre as the camera dives in. */
+  align?: "center" | "left";
+  /** The largest box the opening word may fill, in px. Pass a stable function. */
+  wordFit?: (width: number, height: number) => { width: number; height: number };
   className?: string;
   style?: GlyphPortalStyle;
   /** Called once per rendered scroll frame, never through React state. */
@@ -91,7 +95,7 @@ function scrollParent(element: HTMLElement): HTMLElement | null {
 export default function GlyphPortal({
   word = "SUBLIME", focusChar, interactive = true, background, front, backdrop, children, scrollLength = 2.4,
   fontFamily = DEFAULT_FONT, fontWeight = 900, annotations = false,
-  enterLabel = "Enter section", enterInteractive = true, className, style, onProgress,
+  enterLabel = "Enter section", enterInteractive = true, align = "center", wordFit, className, style, onProgress,
 }: GlyphPortalProps) {
   const uid = `gp-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const clipId = `${uid}-clip`;
@@ -112,6 +116,7 @@ export default function GlyphPortal({
   useLayoutEffect(() => {
     const section = sectionRef.current!;
     const pin = section.querySelector<HTMLElement>("[data-gp-pin]")!;
+    const probe = section.querySelector<HTMLElement>("[data-gp-viewport]")!;
     const field = section.querySelector<HTMLElement>("[data-gp-field]")!;
     const art = section.querySelector<SVGSVGElement>("[data-gp-art]")!;
     const clip = section.querySelector<SVGClipPathElement>(`#${clipId}`)!;
@@ -127,7 +132,7 @@ export default function GlyphPortal({
     let disposed = false, raf = 0, dirty = true, active = true, ready = false;
     const mountedAt = performance.now();
     let browserFrameSeen = false, stalled = false;
-    let W = 1, H = 1, travel = 1, startScale = 1, endScale = 1;
+    let W = 1, H = 1, travel = 1, startScale = 1, endScale = 1, openX = 0;
     let center = { x: 0, y: 0 }, target: Ink | null = null;
     let lastProgress = -1;
     let candidates: Ink[] = [], letters: Letter[] = [];
@@ -222,11 +227,13 @@ export default function GlyphPortal({
       const cx = center.x + ((target?.x ?? center.x) - center.x) * blend;
       const cy = center.y + ((target?.y ?? center.y) - center.y) * blend;
       const roll = -4 * smooth(0.06, 0.5, t) * (1 - smooth(0.62, 0.92, t));
-      const transform = `translate(${W / 2} ${H * 0.46 + H * 0.04 * eased}) scale(${scale}) rotate(${roll}) translate(${-cx} ${-cy})`;
+      // The word's anchor travels with the zoom, so the letter being entered still ends up mid-frame.
+      const ax = openX + (W / 2 - openX) * blend;
+      const transform = `translate(${ax} ${H * 0.46 + H * 0.04 * eased}) scale(${scale}) rotate(${roll}) translate(${-cx} ${-cy})`;
       // Keep scale on the clip to avoid text paint limits. Text-local translation
       // follows page zoom in WebKit; translation on an HTML clip reference does not.
       const radians = roll * Math.PI / 180;
-      const dx = W / 2 / scale, dy = (H * .46 + H * .04 * eased) / scale;
+      const dx = ax / scale, dy = (H * .46 + H * .04 * eased) / scale;
       clip.setAttribute("transform", `scale(${scale}) rotate(${roll})`);
       glyph.setAttribute("transform", `translate(${Math.cos(radians) * dx + Math.sin(radians) * dy - cx} ${-Math.sin(radians) * dx + Math.cos(radians) * dy - cy})`);
       marks.setAttribute("transform", transform);
@@ -257,9 +264,11 @@ export default function GlyphPortal({
 
     const layout = () => {
       if (!section.clientWidth) return;
+      // New geometry needs a repaint even when the scroll position hasn't moved (a rotated phone, say).
+      painted = -1;
       W = pin.clientWidth;
       // A 100svh probe keeps browser chrome from continually changing the scroll distance.
-      const smallViewport = section.querySelector<HTMLElement>("[data-gp-viewport]")!.offsetHeight;
+      const smallViewport = probe.offsetHeight;
       const viewportHeight = Math.max(1, Math.min(root?.clientHeight ?? smallViewport, smallViewport));
       H = motion.matches ? Math.min(viewportHeight * 0.75, 480) : viewportHeight;
       section.style.setProperty("--gp-height", `${H}px`);
@@ -269,18 +278,22 @@ export default function GlyphPortal({
       if (!ready) return;
       const wordHeight = hasFront && H < 480 ? Math.min(H * .46, Math.max(36, H - 190)) : H * .52;
       const widthRatio = W < 520 ? 0.9 : W < 900 ? 0.88 : 0.86;
-      startScale = Math.min(W * widthRatio / bounds.width, wordHeight / bounds.height);
+      const fit = wordFit?.(W, H) ?? { width: W * widthRatio, height: wordHeight };
+      startScale = Math.min(fit.width / bounds.width, fit.height / bounds.height);
+      const inkWidth = bounds.width * startScale;
+      openX = align === "left" ? (parseFloat(getComputedStyle(probe).paddingLeft) || 0) + inkWidth / 2 : W / 2;
       // The whole viewport fits inside measured ink, even with the small camera bank.
       select(target);
       for (const button of buttons) {
         const letter = letters.find((item) => item.index === Number(button.dataset.gpLetter))!;
         Object.assign(button.style, {
-          left: `${W / 2 + (letter.x - center.x) * startScale}px`,
+          left: `${openX + (letter.x - center.x) * startScale}px`,
           top: `${H * .46 + (letter.y - center.y) * startScale - Math.max(0, 44 - letter.height * startScale) / 2}px`,
           width: `${Math.max(1, letter.width * startScale)}px`,
           height: `${Math.max(44, letter.height * startScale)}px`,
         });
       }
+      section.style.setProperty("--gp-word-left", `${openX - inkWidth / 2}px`);
       section.style.setProperty("--gp-word-top", `${H * .46 - bounds.height * startScale / 2}px`);
       section.style.setProperty("--gp-word-bottom", `${H * .46 + bounds.height * startScale / 2}px`);
       section.dataset.gpReady = "true";
@@ -358,7 +371,7 @@ export default function GlyphPortal({
       choices.removeEventListener("keydown", navigate);
       picker.removeEventListener("change", pick);
     };
-  }, [text, focusChar, interactive, fontFamily, weight, length, clipId, hasFront]);
+  }, [text, focusChar, interactive, fontFamily, weight, length, clipId, hasFront, align, wordFit]);
 
   return (
     <section ref={sectionRef} id={uid} className={className} aria-label={text}

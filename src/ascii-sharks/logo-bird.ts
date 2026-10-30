@@ -334,7 +334,7 @@ const sprites = new WeakMap<Shark, Sprite>();
 /** Centre labels of the sub-cells, with a one-cell empty border; shared, grown as needed. */
 let labels = new Uint8Array(0);
 
-function makeCanvas(w: number, h: number) {
+export function makeCanvas(w: number, h: number) {
   if (typeof OffscreenCanvas !== "undefined") return new OffscreenCanvas(w, h);
   const c = document.createElement("canvas");
   c.width = w;
@@ -376,9 +376,11 @@ export function drawBird(ctx: CanvasRenderingContext2D, sh: Shark, cw: number, c
   const u = (((sh.phase / TAU) % 1) + 1) % 1;
   const down = u < 0.42 ? smoothstep(0, 1, u / 0.42) : 1 - smoothstep(0, 1, (u - 0.42) / 0.58);
   const theta = amp * down * Math.PI * 0.8;
-  const dihedral = b.pose === 0 ? 0.4 + theta * 0.82 : 0;
+  // Fresh off the logo the wings are still in its pose, and ease out of it.
+  const live = 1 - b.logoPose;
+  const dihedral = b.pose === 0 ? (0.4 + theta * 0.82) * live : 0;
   // Folded on the perch: swung back along the body, tucked smaller, lying outside it.
-  const sweep = b.pose === 2 ? -1.05 : b.pose === 1 ? 0.12 : -0.22 * Math.sin(theta);
+  const sweep = b.pose === 2 ? -1.05 : b.pose === 1 ? 0.12 : -0.22 * Math.sin(theta) * live;
   // Each downstroke lifts the body a little, so the bird rides its wingbeat.
   const cx = b.x;
   const cy = b.y - amp * L * 0.035 * (down - 0.5);

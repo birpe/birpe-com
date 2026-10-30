@@ -28,7 +28,7 @@ export interface Sky {
  * until it's fresh again. It watches the other bird and steers clear before they meet.
  */
 export interface BirdState {
-  mode: "patrol" | "soar" | "approach" | "perched" | "takeoff";
+  mode: "parked" | "launch" | "patrol" | "soar" | "approach" | "perched" | "takeoff";
   x: number;
   y: number;
   vx: number;
@@ -64,6 +64,10 @@ export interface BirdState {
   yaw: number;
   /** The side a wide turn in progress swings out toward, held so the bird sweeps round one way. */
   turnVia: V3 | null;
+  /** Launching: 1 is the logo's exact pose, easing to 0 as its wings come alive. */
+  logoPose: number;
+  /** Launching: seconds it stays hidden behind the other bird before it follows. */
+  launchDelay: number;
 }
 
 export type V3 = [number, number, number];
@@ -88,6 +92,9 @@ const LOOP_LEAD = 0.8;
 const MAX_DEPTH = 2.2;
 /** Gravity, px/s²; a bird banks so its lift balances this against the pull of its turn. */
 const G = 380;
+/** Sim seconds a launch lasts, and how long its wings take to leave the logo's pose. */
+const LAUNCH_TIME = 1.1;
+const LOGO_POSE_RELEASE = 0.14;
 
 /** Cruising speed, px/s: quicker in a wider sky, so a pass across it doesn't drag. */
 const cruiseSpeed = (W: number) => 70 + W * 0.065;
@@ -150,7 +157,57 @@ export function newBird(x: number, y: number, heading: number, W: number, H: num
     up: [0, -1, 0],
     yaw: face === 1 ? 0 : -Math.PI,
     turnVia: null,
+    logoPose: 0,
+    launchDelay: 0,
   };
+}
+
+/** Keep a bird out of the sky, and out of the fish's way, until it's launched or released. */
+export function parkBird(sh: Shark) {
+  sh.bird!.mode = "parked";
+  sh.speed = 0;
+  sh.nodes.fill(-1e4);
+}
+
+/** A parked bird joins the sky from wherever it was seeded. */
+export function releaseBird(sh: Shark) {
+  const b = sh.bird!;
+  if (b.mode !== "parked") return;
+  b.mode = "patrol";
+  b.timer = 0;
+  placeBirdNodes(sh);
+}
+
+/**
+ * Start a parked bird from the logo: at (x, y) and `length` px long, side-on in the logo's
+ * pose, moving just enough to hold that heading. It climbs to full size on the way to (tx, ty).
+ */
+export function launchBird(world: Sky, sh: Shark, x: number, y: number, length: number, tx: number, ty: number, delay: number) {
+  const b = sh.bird!;
+  b.mode = "launch";
+  b.x = x;
+  b.y = y;
+  // A hair behind the other bird while it waits, so it's drawn first.
+  b.z = delay > 0 ? 1 : 0;
+  b.vx = cruiseSpeed(world.width) * 0.2;
+  b.vy = 0;
+  b.vz = 0;
+  b.tx = tx;
+  b.ty = ty;
+  b.timer = LAUNCH_TIME;
+  b.scale = length / sh.length;
+  b.flap = 1;
+  b.pose = 0;
+  b.face = 1;
+  b.fwd = [1, 0, 0];
+  b.up = [0, -1, 0];
+  b.turnVia = null;
+  b.logoPose = 1;
+  b.launchDelay = delay;
+  sh.phase = 0;
+  sh.heading = 0;
+  sh.speed = Math.abs(b.vx);
+  placeBirdNodes(sh);
 }
 
 /** Where birds can land, in px. Birds sitting on a perch that's gone take off. */
@@ -181,6 +238,10 @@ export function refitBirds(world: Sky, kx: number, ky: number) {
     if (!b) continue;
     b.x *= kx;
     b.y *= ky;
+    if (b.mode === "launch") {
+      b.tx *= kx;
+      b.ty *= ky;
+    }
     if (b.mode === "patrol" || b.mode === "soar") b.timer = 0;
   }
 }
@@ -274,6 +335,11 @@ const loopWidth = (b: BirdState, L: number) => Math.min(L * LOOP_X, (b.home.x1 -
  */
 export function flyBird(world: Sky, sh: Shark, dt: number) {
   const b = sh.bird!;
+  if (b.mode === "parked") return;
+  if (b.mode === "launch" && b.launchDelay > 0) {
+    b.launchDelay -= dt;
+    return;
+  }
   const { width: W, height: H, time } = world;
   const L = sh.length;
   const S = cruiseSpeed(W);
@@ -418,6 +484,21 @@ export function flyBird(world: Sky, sh: Shark, dt: number) {
     if (b.timer <= 0) decide(world, sh);
   }
 
+  if (b.mode === "launch") {
+    b.timer -= dt;
+    b.logoPose = Math.max(0, b.logoPose - dt / LOGO_POSE_RELEASE);
+    const dx = b.tx - b.x;
+    const dy = b.ty - b.y;
+    const d = Math.hypot(dx, dy) || 1;
+    wantVx = (dx / d) * S * 2.6;
+    wantVy = (dy / d) * S * 2.6;
+    flapTarget = 1;
+    turnRate = cruiseTurn * 2;
+    // The two start on one spot; they only look out for each other once they're apart.
+    avoid = 0;
+    if (b.timer <= 0) decide(world, sh);
+  }
+
   // See the other bird coming: find where the two will be closest over the next two
   // seconds and steer apart before then, one rising and one dropping.
   for (const o of world.sharks) {
@@ -457,7 +538,7 @@ export function flyBird(world: Sky, sh: Shark, dt: number) {
     b.vy += (wantVy - b.vy) * ease;
     b.vz += (wantVz - b.vz) * ease;
   } else {
-    steer(b, wantVx, wantVy, wantVz, turnRate, Math.min(1, dt * (b.mode === "approach" ? 2 : 1.3)), dt, L);
+    steer(b, wantVx, wantVy, wantVz, turnRate, Math.min(1, dt * (b.mode === "launch" ? 3 : b.mode === "approach" ? 2 : 1.3)), dt, L);
   }
   // Belt and braces: whatever pushed it, a flying bird never sinks faster than its steepest dive.
   if (b.mode !== "approach") b.vy = Math.min(b.vy, steep * Math.hypot(b.vx, b.vy, b.vz));
@@ -465,7 +546,8 @@ export function flyBird(world: Sky, sh: Shark, dt: number) {
   b.y += b.vy * dt;
   b.z += b.vz * dt;
   b.x = clamp(b.x, -L, W + L);
-  b.y = clamp(b.y, L * 0.2, H - L * 0.2);
+  // A launching bird starts wherever the logo was, which may be nearer the top than this allows.
+  b.y = clamp(b.y, b.mode === "launch" ? 0 : L * 0.2, H - L * 0.2);
   b.z = clamp(b.z, -L * MAX_DEPTH, L * MAX_DEPTH);
 
   // The body follows its flight path, banking with the pull of the turn.
@@ -477,7 +559,7 @@ export function flyBird(world: Sky, sh: Shark, dt: number) {
   }
 
   // Flap hard to climb, glide to descend; flying wears it out.
-  if (b.pose === 0 && b.mode !== "takeoff" && b.mode !== "soar") flapTarget = clamp(0.75 - (b.vy / speed) * 1.4, 0.2, 1);
+  if (b.pose === 0 && b.mode !== "takeoff" && b.mode !== "soar" && b.mode !== "launch") flapTarget = clamp(0.75 - (b.vy / speed) * 1.4, 0.2, 1);
   b.flap += (flapTarget - b.flap) * Math.min(1, dt * 2);
   b.energy = Math.max(0, b.energy - dt * (0.012 + 0.02 * b.flap));
   b.scale += (clamp(scaleTarget, PERCH_SCALE, 1) - b.scale) * Math.min(1, dt * 1.5);

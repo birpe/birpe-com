@@ -15,21 +15,27 @@ interface Bough {
   w0: number;
   w1: number;
 }
-/** A clump of leaves: a lumpy disc around (x, y). */
+/** A clump of leaves: a lumpy disc around (x, y); `hue` leans it cool (0) or warm (1). */
 interface Clump {
   x: number;
   y: number;
   r: number;
   ph: number;
+  hue: number;
 }
 
-/** Sunlit leaves are sparse and pale, shaded leaves dense and dark (index 0 is deepest shade). */
-const LEAF_RAMP = "@&%#*+;:";
+/** Sunlit leaves are lighter strokes, shaded leaves dense and dark (index 0 is deepest shade). */
+const LEAF_RAMP = "@&%#%*+*";
 const LEAF_EDGE = ".,'`";
-const BARK_DARK: [number, number, number] = [66, 40, 20];
-const BARK_LIGHT: [number, number, number] = [138, 92, 52];
-const LEAF_DARK: [number, number, number] = [16, 78, 38];
-const LEAF_LIGHT: [number, number, number] = [74, 162, 78];
+const BARK_DARK: [number, number, number] = [84, 44, 16];
+const BARK_LIGHT: [number, number, number] = [176, 104, 44];
+const LEAF_DARK: [number, number, number] = [0, 92, 58];
+/** The sunlit end of a leaf, from a cool emerald clump to a warm lime one. */
+const LEAF_COOL: [number, number, number] = [0, 158, 84];
+const LEAF_WARM: [number, number, number] = [100, 176, 0];
+/** The odd leaf among the green, already turning. */
+const LEAF_GOLD: [number, number, number] = [240, 150, 0];
+const LEAF_CORAL: [number, number, number] = [234, 76, 70];
 
 /** Grow the same tree every time: a leaning trunk that forks four times, leaves at the outer forks. */
 function growTree() {
@@ -46,7 +52,7 @@ function growTree() {
     const ey = my + Math.sin(bend) * len * 0.5;
     boughs.push({ x0: x, y0: y, x1: mx, y1: my, w0: w, w1: w * 0.84 });
     boughs.push({ x0: mx, y0: my, x1: ex, y1: ey, w0: w * 0.84, w1: w * 0.66 });
-    if (depth >= 2) clumps.push({ x: ex, y: ey, r: 0.075 + 0.045 * rnd() + 0.02 * (4 - depth), ph: rnd() * TAU });
+    if (depth >= 2) clumps.push({ x: ex, y: ey, r: 0.075 + 0.045 * rnd() + 0.02 * (4 - depth), ph: rnd() * TAU, hue: hash3(clumps.length, 31, 9) });
     if (depth === 4) return;
     const n = depth === 0 ? 3 : rnd() < 0.45 ? 3 : 2;
     for (let k = 0; k < n; k++) {
@@ -112,10 +118,24 @@ function growTree() {
 }
 const TREE = growTree();
 
+const mix = (from: [number, number, number], to: [number, number, number], k: number) =>
+  `rgb(${Math.round(from[0] + (to[0] - from[0]) * k)},${Math.round(from[1] + (to[1] - from[1]) * k)},${Math.round(from[2] + (to[2] - from[2]) * k)})`;
+
+/** A leaf's colour at a given light and clump hue, without allocating: this runs for thousands of cells. */
+function leafTone(shade: number, hue: number) {
+  const channel = (n: number) => {
+    const light = LEAF_COOL[n] + (LEAF_WARM[n] - LEAF_COOL[n]) * hue;
+    return Math.round(LEAF_DARK[n] + (light - LEAF_DARK[n]) * shade);
+  };
+  return `rgb(${channel(0)},${channel(1)},${channel(2)})`;
+}
+
 export class CornerTree {
   /** Per cell, rebuilt on resize: 0 none, 1 bark, 2 leaves, 3 leaf edge, 4 grass. */
   kind = new Uint8Array(0);
   private shade = new Float32Array(0);
+  /** Leaves: the hue of the clump each cell belongs to. */
+  private hue = new Float32Array(0);
   /** Bark: the glyph that follows the limb. Leaves and grass: a hash for picking glyphs. */
   private glyph: string[] = [];
   private key = new Uint32Array(0);
@@ -149,17 +169,18 @@ export class CornerTree {
     if (this.kind.length !== n) {
       this.kind = new Uint8Array(n);
       this.shade = new Float32Array(n);
+      this.hue = new Float32Array(n);
       this.key = new Uint32Array(n);
       this.glyph = new Array(n).fill("");
     }
     Object.assign(this, { cols, rows, cw, ch, width: W });
-    const { kind: treeKind, shade: treeShade, key: treeKey, glyph: treeGlyph } = this;
+    const { kind: treeKind, shade: treeShade, hue: treeHue, key: treeKey, glyph: treeGlyph } = this;
     treeKind.fill(0);
     this.leafSpots = [];
     this.perches = [];
     this.leaves = [];
-    // Upright screens are narrow, so the tree can take more of their width.
-    const T = Math.min(H * 0.52, W * (W < H ? 0.55 : 0.36));
+    // Upright screens are narrow, so the tree can take more of their width; on a tablet that would run into the word.
+    const T = Math.min(H * 0.52, W * (W >= H ? 0.36 : W < 520 ? 0.55 : 0.46));
     const baseX = W - T * 0.36;
     const baseY = H - ch * 1.5;
     this.baseY = baseY;
@@ -182,6 +203,7 @@ export class CornerTree {
 
         // Leaves: the nearest clump the point falls inside, with a lumpy outline.
         let leaf = -1;
+        let leafHue = 0.5;
         let leafEdge = false;
         for (const k of TREE.clumps) {
           const dx = x - k.x;
@@ -195,12 +217,16 @@ export class CornerTree {
             continue;
           }
           const lit = 0.55 + 0.4 * ((dx * lx + dy * ly) / rr) - 0.25 * d * d;
-          leaf = Math.max(leaf, lit);
+          if (lit > leaf) {
+            leaf = lit;
+            leafHue = k.hue;
+          }
         }
         // A few gaps in the canopy let branches and sky show through.
         if (leaf >= 0 && hash3(c, r, 517) > 0.06) {
           treeKind[i] = 2;
           treeShade[i] = clamp(leaf, 0, 1);
+          treeHue[i] = leafHue;
           if (leafEdge || hash3(c, r, 29) < 0.04) this.leafSpots.push(i);
           continue;
         }
@@ -254,13 +280,11 @@ export class CornerTree {
    * gusts flip leaves pale, and the odd leaf glyph turns over.
    */
   draw(ctx: CanvasRenderingContext2D, t: number, covered: Uint8Array) {
-    const { cols, cw, ch, kind: treeKind, shade: treeShade, key: treeKey, glyph: treeGlyph, baseY: treeBaseY, height: treeHeight } = this;
+    const { cols, cw, ch, kind: treeKind, shade: treeShade, hue: treeHue, key: treeKey, glyph: treeGlyph, baseY: treeBaseY, height: treeHeight } = this;
     const breeze = wind(t);
     // Heavier strokes than the sky, so the tree reads as solid ink.
     const font = ctx.font;
     ctx.font = font.replace(/^\d+/, "800");
-    const tone = (from: [number, number, number], to: [number, number, number], k: number) =>
-      `rgb(${Math.round(from[0] + (to[0] - from[0]) * k)},${Math.round(from[1] + (to[1] - from[1]) * k)},${Math.round(from[2] + (to[2] - from[2]) * k)})`;
     for (let i = 0; i < treeKind.length; i++) {
       const kind = treeKind[i];
       if (!kind || covered[i]) continue;
@@ -270,7 +294,7 @@ export class CornerTree {
       const y = row * ch + ch / 2 + 1;
       const key = treeKey[i];
       if (kind === 1) {
-        ctx.fillStyle = tone(BARK_DARK, BARK_LIGHT, treeShade[i]);
+        ctx.fillStyle = mix(BARK_DARK, BARK_LIGHT, treeShade[i]);
         ctx.fillText(treeGlyph[i], x, y);
         continue;
       }
@@ -284,14 +308,16 @@ export class CornerTree {
         if (kind === 2) {
           const shade = clamp(treeShade[i] + ripple + Math.max(0, breeze) * 0.12 * h, 0, 1);
           const jitter = Math.floor(hash3(key, tick, 3) * 3) - 1;
-          ctx.fillStyle = tone(LEAF_DARK, LEAF_LIGHT, shade);
+          // About one leaf in twenty has started to turn.
+          const turned = key % 23 === 0 ? LEAF_GOLD : key % 61 === 0 ? LEAF_CORAL : null;
+          ctx.fillStyle = turned ? `rgb(${turned.join(",")})` : leafTone(shade, treeHue[i]);
           ctx.fillText(LEAF_RAMP[clamp(Math.floor(shade * 7.99) + jitter, 0, LEAF_RAMP.length - 1)], sx, y);
         } else {
-          ctx.fillStyle = tone(LEAF_DARK, LEAF_LIGHT, 0.55 + ripple);
+          ctx.fillStyle = leafTone(0.55 + ripple, 0.5);
           ctx.fillText(LEAF_EDGE[(key + tick) % LEAF_EDGE.length], sx, y);
         }
       } else {
-        ctx.fillStyle = tone(LEAF_DARK, LEAF_LIGHT, 0.4 + 0.3 * ((key >>> 5) % 3) / 2);
+        ctx.fillStyle = leafTone(0.55 + 0.3 * ((key >>> 5) % 3) / 2, 0.75);
         ctx.fillText(",.'\"wv"[(key + tick) % 6], x, y);
       }
     }
@@ -340,13 +366,7 @@ export class CornerTree {
       const col = Math.floor(f.x / cw);
       const row = Math.floor(f.y / ch);
       if (col < 0 || row < 0 || col >= cols || row >= rows) continue;
-      const k = 0.55;
-      const g: [number, number, number] = [
-        LEAF_DARK[0] + (LEAF_LIGHT[0] - LEAF_DARK[0]) * k,
-        LEAF_DARK[1] + (LEAF_LIGHT[1] - LEAF_DARK[1]) * k,
-        LEAF_DARK[2] + (LEAF_LIGHT[2] - LEAF_DARK[2]) * k,
-      ];
-      const rgb = g.map((v, n) => Math.round(v + ([170, 168, 58][n] - v) * f.yellow));
+      const rgb = LEAF_COOL.map((v, n) => Math.round(v + (LEAF_GOLD[n] - v) * f.yellow));
       const alpha = f.settle > 0 ? clamp(f.settle / 4, 0, 1) : 1;
       ctx.fillStyle = `rgba(${rgb.join(",")},${alpha.toFixed(2)})`;
       // Tumbling: the glyph turns over as the leaf flutters.

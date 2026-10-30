@@ -406,6 +406,8 @@ export class AsciiRenderer {
   /** Fish cells bucketed by brightness, so each bucket is one fillStyle. */
   private fishBuckets: number[][] = FISH_ALPHAS.map(() => []);
   private fishStyles: string[];
+  /** Painted over everything else in the sky while it's set. */
+  overlay: ((ctx: CanvasRenderingContext2D) => void) | null = null;
 
   constructor(private canvas: HTMLCanvasElement, private theme: OceanTheme = DARK_THEME) {
     const ctx = canvas.getContext("2d", { alpha: false });
@@ -551,8 +553,9 @@ export class AsciiRenderer {
     if (this.theme.tree) this.tree.drawLeaves(ctx, t, dt);
     this.drawSharks(t);
     // Farther birds first, so one turning in front passes over the other.
-    const birds = world.sharks.filter((sh) => sh.bird).sort((a, b) => b.bird!.z - a.bird!.z);
+    const birds = world.sharks.filter((sh) => sh.bird && sh.bird.mode !== "parked").sort((a, b) => b.bird!.z - a.bird!.z);
     for (const sh of birds) drawBird(ctx, sh, this.cw, this.ch);
+    this.overlay?.(ctx);
   }
 
   // ── simulation → field ──────────────────────────────────────────────

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { flushSync } from "react-dom";
 import { BIRPE_THEME, type SharkSpec } from "@/ascii-sharks";
 import { AsciiOcean } from "@/ascii-sharks/react";
 import Aurora from "@/components/ui/aurora";
@@ -14,6 +15,12 @@ const oceanSharks: SharkSpec[] = [
   { kind: "bird", size: 0.3 },
 ];
 
+/** A little under the portal's default size: phones keep a full line, wide screens leave the right side to the tree. */
+const heroWordFit = (W: number, H: number) => ({
+  width: W * (W < 520 ? 0.86 : W < H ? 0.72 : 0.6),
+  height: H < 480 ? Math.min(H * 0.46, Math.max(36, H - 190)) : H * 0.44,
+});
+
 const settings = { word: "birpe", scrollLength: 2.4, interactive: true, annotations: false };
 const family = '"Birpe Rounded", Arial, sans-serif';
 /** Keep the intro loader visible long enough to read the motion, even when the font is cached. */
@@ -23,8 +30,24 @@ let fontLoad: Promise<void> | undefined;
 export default function BirpeLanding(props: Partial<typeof settings>) {
   const s = { ...settings, ...props };
   const bird = useRef<HTMLButtonElement>(null);
+  const logoImage = useRef<HTMLImageElement>(null);
+  const page = useRef<HTMLElement>(null);
+  const [logoFlown, setLogoFlown] = useState(false);
   const reduceMotion = useRef(false);
   const [face, setFace] = useState<string | null>(null);
+
+  const logoIntro = useMemo(() => ({
+    image: () => logoImage.current,
+    onCrouch: () => {
+      bird.current?.animate([{ transformOrigin: "50% 100%", translate: "0 0", scale: "1 1" }, { transformOrigin: "50% 100%", translate: "0 2px", scale: "1.03 0.95" }], { duration: 150, easing: "ease-in", fill: "forwards" });
+    },
+    onTakeover: () => {
+      if (document.activeElement === bird.current) page.current?.focus({ preventScroll: true });
+      // In this very frame, or the logo and its stand-in on the sky would drift apart.
+      flushSync(() => setLogoFlown(true));
+    },
+    onCancel: () => bird.current?.getAnimations().forEach((animation) => animation.cancel()),
+  }), []);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -73,13 +96,13 @@ export default function BirpeLanding(props: Partial<typeof settings>) {
     };
   }, []);
   return (
-    <main onPointerMove={onMainPointerMove} data-demo-scroll data-slipstream-demo tabIndex={0} aria-label="Birpe. Scroll into a lighter day."
+    <main ref={page} onPointerMove={onMainPointerMove} data-demo-scroll data-slipstream-demo tabIndex={0} aria-label="Birpe. Scroll into a lighter day."
       style={{ width: "100%", height: "100svh", overflowX: "clip", overflowY: "auto", background: "#fff", containerType: "inline-size", fontFamily: "Arial, sans-serif", WebkitOverflowScrolling: "touch", scrollPaddingBottom: "env(safe-area-inset-bottom)" }}>
       <div id="top" />
       <h1 className="sr-only">Birpe — Your everyday AI agent</h1>
       <LiquidGlassFilter />
-      {face ? <GlyphPortal word={s.word} fontFamily={face} fontWeight={500} style={{ fontFamily: "Arial, sans-serif", "--gp-field": "#1859d5", "--gp-ink": "#142033", "--gp-foreground": "#ffffff" }} backdrop={<AsciiOcean className="hero-ocean" sharks={oceanSharks} theme={BIRPE_THEME} speed={0.55} />} background={<Aurora className="birpe-field" intensity={0.55} duration={18} />} scrollLength={s.scrollLength} interactive={s.interactive} annotations={s.annotations} enterLabel="Scroll here" enterInteractive={false} front={
-          <div data-sublime-header><button ref={bird} className="bird-guide" aria-label="Give the bird a little lift" onClick={()=>{if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;bird.current?.animate([{translate:'0 0',rotate:'0deg'},{translate:'9px -15px',rotate:'-10deg'},{translate:'0 0',rotate:'0deg'}],{duration:600,easing:'ease-in-out'});}}><span className="header-bird"><img src="/assets/images/bird-logo.png" alt="" /></span></button><span data-sublime-category>Your everyday AI agent</span></div>
+      {face ? <GlyphPortal word={s.word} fontFamily={face} fontWeight={500} style={{ fontFamily: "Arial, sans-serif", "--gp-field": "#1859d5", "--gp-ink": "#142033", "--gp-foreground": "#ffffff" }} backdrop={<AsciiOcean className="hero-ocean" sharks={oceanSharks} theme={BIRPE_THEME} speed={0.55} logoIntro={logoIntro} />} background={<Aurora className="birpe-field" intensity={0.55} duration={18} />} scrollLength={s.scrollLength} interactive={s.interactive} annotations={s.annotations} enterLabel="Scroll here" enterInteractive={false} align="left" wordFit={heroWordFit} front={
+          <div data-sublime-header>{!logoFlown && <button ref={bird} className="bird-guide" aria-label="Give the bird a little lift" onClick={()=>{if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;bird.current?.animate([{translate:'0 0',rotate:'0deg'},{translate:'9px -15px',rotate:'-10deg'},{translate:'0 0',rotate:'0deg'}],{duration:600,easing:'ease-in-out'});}}><span className="header-bird"><img ref={logoImage} src="/assets/images/bird-logo.png" alt="" /></span></button>}<span data-sublime-category>Your everyday AI agent</span></div>
         }>
         <div data-slipstream-copy>
           <h2>Less on your mind. More room for life.</h2>
