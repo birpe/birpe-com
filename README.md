@@ -38,7 +38,7 @@ The sign-up form posts to `worker/index.ts`, which stores emails in the `birpe-w
 
 The first visit plays for about 5.3 seconds after the window load event. Later visits play at five times the speed and show “Ready.” The browser stores the completed-visit flag under `birpe:preloader:seen`; remove that key from local storage to preview the full sequence again. Reduced-motion users get a short fade without the blur, slideshow, or spinner animation.
 
-Listen for `preloader:done` on `document` or `window` to start home-screen animations. The event is dispatched once on `document` and bubbles to `window` after the overlay fades out. Scrolling stays locked until the hero sends `hero:built`, so nobody scrolls into content that is still hidden. Unmounting the component also cleans up its animations, timers, and scroll lock. `index.html` turns off the browser's scroll restoration, so a refresh always starts at the top with the word.
+Listen for `preloader:done` on `document` or `window` to start home-screen animations. The event is dispatched once on `document` and bubbles to `window` after the overlay fades out. Scrolling stays locked until the hero sends `hero:built`, so nobody scrolls into content that is still hidden. Unmounting the component also cleans up its animations, timers, and scroll lock. `index.html` turns off the browser's scroll restoration and drops any `#section` from the URL on reload, so a refresh always starts at the top with the word. Opening a link with an anchor still goes to that section.
 
 ## Hero intro
 

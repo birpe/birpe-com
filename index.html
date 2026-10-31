@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script>history.scrollRestoration='manual';document.documentElement.classList.add('is-loading');try{if(localStorage.getItem('birpe:theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+    <script>history.scrollRestoration='manual';if(location.hash&&performance.getEntriesByType('navigation')[0]?.type==='reload')history.replaceState(null,'',location.pathname+location.search);document.documentElement.classList.add('is-loading');try{if(localStorage.getItem('birpe:theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
     <style>html.is-loading{overflow:hidden}</style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Birpe is a personal AI agent that takes refunds, bookings, bills and calls off your list. Join the waitlist." />
