@@ -8,7 +8,7 @@ const MESSAGES: Partial<Record<Status, string>> = {
   invalid: "That email doesn't look right. Please check it.",
 };
 
-/** The hero's sign-up form. `inputId` is what the page's other waitlist links focus. */
+/** The sign-up form at the end of the page. */
 export default function WaitlistForm({ inputId }: { inputId: string }) {
   const [status, setStatus] = useState<Status>("idle");
   const message = MESSAGES[status];
@@ -30,7 +30,7 @@ export default function WaitlistForm({ inputId }: { inputId: string }) {
   };
 
   if (status === "done") {
-    return <p data-waitlist-done role="status">You're on the list. We'll email you when Birpe opens.</p>;
+    return <p className="u-body-3" data-waitlist-done role="status">You're on the list. We'll email you when Birpe opens.</p>;
   }
 
   return (
@@ -40,9 +40,9 @@ export default function WaitlistForm({ inputId }: { inputId: string }) {
         <input id={inputId} name="email" type="email" autoComplete="email" inputMode="email" required maxLength={254} placeholder="you@example.com" aria-describedby={`${inputId}-note`} />
         {/* Left empty by people, who never see it; bots fill it in. */}
         <input data-waitlist-trap name="website" type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" />
-        <button type="submit" disabled={status === "sending"}>{status === "sending" ? "Joining…" : "Join the waitlist"}</button>
+        <button className="btn-pill u-btn" type="submit" disabled={status === "sending"}>{status === "sending" ? "Joining…" : "Join the waitlist"}</button>
       </div>
-      <p id={`${inputId}-note`} data-waitlist-note role={message ? "alert" : undefined} data-error={message ? "" : undefined}>
+      <p className="u-title-s" id={`${inputId}-note`} data-waitlist-note role={message ? "alert" : undefined} data-error={message ? "" : undefined}>
         {message ?? "We'll only use your email to tell you when Birpe opens."}
       </p>
     </form>

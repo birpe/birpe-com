@@ -3,6 +3,7 @@ import { useHeroIntro } from '@/lib/useHeroIntro';
 import '@/styles/hero.css';
 import TetrisSkyline from './TetrisSkyline';
 import RollText from './ui/RollText';
+import WaitlistForm from './WaitlistForm';
 
 const examples = [
   { id: 'refund', name: 'Chase a refund', chip: 'Refunds', prompt: 'Help me follow up on a refund.', result: 'Start with the order number, the return date, and the store’s refund policy. Then send a short follow-up asking for the refund status and expected arrival date.' },
@@ -14,7 +15,7 @@ const examples = [
 const boundaries = ['You choose the goal', 'Your files stay local', 'No automatic actions'];
 const menuGroups = [
   { title: 'Menu', links: [['Examples', '#examples'], ['How it works', '#how-it-works'], ['Four moves', '#steps'], ['FAQs', '#faqs']] },
-  { title: 'Other', links: [['Try a task', '#try-a-task'], ['Back to top', '#top']] },
+  { title: 'Other', links: [['Try a task', '#try-a-task'], ['Join the waitlist', '#waitlist'], ['Back to top', '#top']] },
 ];
 const THEME_KEY = 'birpe:theme';
 
@@ -118,8 +119,8 @@ export default function BirpeHero() {
   ];
   const faqs = [
     ['What is Birpe being built to do?', 'Help with everyday tasks like refunds, bookings, bills and calls.'],
-    ['Is Birpe available yet?', 'Not yet. The agent is still being built, so this page is a demo with sample answers.'],
-    ['Are these live AI responses?', 'No. They’re fixed samples. This page doesn’t contact a model or any other service.'],
+    ['Is Birpe available yet?', 'Not yet. The agent is still being built, so this page is a demo with sample answers. Join the waitlist to hear when it opens.'],
+    ['Are these live AI responses?', 'No. They’re fixed samples. The demo doesn’t contact a model or any other service.'],
     ['What happens to an attachment?', 'Nothing. The demo shows the file’s name and never reads or uploads it.'],
     ['Is my task saved?', 'No. Refreshing clears the text and the file, and the page keeps no history.'],
     ['Who decides what happens next?', 'You do. The demo only suggests a first step, and nothing happens until you act on it.'],
@@ -285,6 +286,14 @@ export default function BirpeHero() {
         <div className="faq-main">
           <h2 id="faq-title" className="section-headline u-h2" data-reveal-words>Common questions</h2>
           <div className="faq-list">{faqs.map(([question, answer]) => <details key={question} className="faq-item"><summary className="u-body-3">{question}<span className="faq-toggle" aria-hidden="true" /></summary><p className="u-body-2 u-fg-64">{answer}</p></details>)}</div>
+        </div>
+      </section>
+
+      <section id="waitlist" className="waitlist-section section-grid" aria-labelledby="waitlist-title">
+        <p className="section-tag u-tag" data-reveal>Waitlist</p>
+        <div className="waitlist-main">
+          <h2 id="waitlist-title" className="section-headline u-h2" data-reveal-words>Be first when Birpe opens.</h2>
+          <div className="waitlist-form" data-reveal><WaitlistForm inputId="waitlist-email" /></div>
         </div>
       </section>
     </div>

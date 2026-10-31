@@ -1,6 +1,6 @@
 # Birpe
 
-Birpe is a React, TypeScript, and Tailwind CSS site. The page opens with a preloader, then a hero built around the falling-block Birpe word, then a two-column section grid, feature cards with a local task preview, a looping how-it-works list, four sticky steps, an FAQ, and a dot-matrix footer card. The structure follows [fourmula.ai](https://fourmula.ai/) in Birpe's own colors.
+Birpe is a React, TypeScript, and Tailwind CSS site. The page opens with a preloader, then a hero built around the falling-block Birpe word, then a two-column section grid, feature cards with a local task preview, a looping how-it-works list, four sticky steps, an FAQ, a waitlist sign-up, and a dot-matrix footer card. The structure follows [fourmula.ai](https://fourmula.ai/) in Birpe's own colors.
 
 The previous source, page HTML, and README are backed up in `_archive/homepage-before-reset-2026-10-31.tar.gz`. Existing components and assets remain available for reuse; `public/assets/images/ring/` is no longer used by the page.
 

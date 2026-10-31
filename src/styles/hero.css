@@ -165,6 +165,27 @@
   .faq-item::details-content { transition: none; }
 }
 
+.waitlist-section { margin-top: 10rem; scroll-margin-top: 6rem; }
+.waitlist-main { min-width: 0; }
+.waitlist-form { max-width: 44rem; padding: 0 var(--gutter) var(--gutter); }
+[data-waitlist-row] { position: relative; display: flex; gap: .5rem; }
+/* The 16px floor stops iPhones zooming the page when the field is focused. */
+[data-waitlist] input[name='email'] { flex: 1; min-width: 0; padding: .875rem 1.5rem; border: 1px solid var(--line); border-radius: 10rem; background: var(--surface); color: var(--fg); font-size: max(1rem, 16px); }
+[data-waitlist] input[name='email']::placeholder { color: var(--fg); opacity: .64; }
+[data-waitlist] input[name='email']:focus-visible { outline: .125rem solid var(--brand-blue); outline-offset: .125rem; }
+[data-waitlist] button { flex: none; white-space: nowrap; cursor: pointer; }
+[data-waitlist] button:disabled { opacity: .7; cursor: progress; }
+[data-waitlist] button:focus-visible { outline: .125rem solid var(--brand-blue); outline-offset: .125rem; }
+[data-waitlist-trap] { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+.hero-shell [data-waitlist-note] { margin-top: .75rem; padding-left: 1.5rem; opacity: .64; }
+.hero-shell [data-waitlist-note][data-error] { color: #a4161a; opacity: 1; }
+html[data-theme='dark'] .hero-shell [data-waitlist-note][data-error] { color: #ff9c9c; }
+.hero-shell [data-waitlist-done] { padding: 1.25rem 1.5rem; border-radius: 1.5rem; background: var(--panel); }
+@media (max-width: 767px) {
+  [data-waitlist-row] { flex-direction: column; }
+}
+html[data-large-zoom] [data-waitlist-row] { flex-direction: column; }
+
 @media (max-width: 991px) {
   .hero-board { width: 80%; }
   /* Those rows are too short for the text on tablets and phones, so it follows the word instead. */
