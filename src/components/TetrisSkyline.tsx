@@ -26,7 +26,7 @@ function fallFrames(piece: Piece) {
   });
 }
 
-export default function TetrisSkyline({ ready }: { ready: boolean }) {
+export default function TetrisSkyline({ ready, onBuilt, onClearing }: { ready: boolean; onBuilt: () => void; onClearing: (seconds: number) => void }) {
   const root = useRef<HTMLDivElement>(null);
   const board = useRef<SVGSVGElement>(null);
 
@@ -47,6 +47,7 @@ export default function TetrisSkyline({ ready }: { ready: boolean }) {
         end = landed + LOCK_SECONDS;
         start += (frames.length - 1) * ROW_SECONDS * OVERLAP;
       });
+      timeline.call(onBuilt, undefined, end).call(onClearing, [FADE_SECONDS], end + HOLD_SECONDS);
       timeline.to(board.current, { opacity: 0, duration: FADE_SECONDS, ease: 'power1.inOut' }, end + HOLD_SECONDS);
       let visible = false;
       const sync = () => { timeline.paused(!visible || document.hidden); };
@@ -59,7 +60,7 @@ export default function TetrisSkyline({ ready }: { ready: boolean }) {
       };
     });
     return () => media.revert();
-  }, [ready]);
+  }, [ready, onBuilt, onClearing]);
 
   return (
     <div ref={root} className={styles.root} style={{ aspectRatio: `${COLUMNS} / ${ROWS}` }} aria-hidden="true" data-ready={ready}>

@@ -38,9 +38,9 @@ export default function Preloader() {
     root.classList.add('is-loading');
     root.style.overflow = 'hidden';
     if (returning) {
-      counter.textContent = 'Synced';
+      counter.textContent = 'Ready';
       indicator.setAttribute('aria-valuenow', '100');
-      indicator.setAttribute('aria-valuetext', 'Synced');
+      indicator.setAttribute('aria-valuetext', 'Ready');
     }
 
     const finish = () => {
@@ -79,7 +79,7 @@ export default function Preloader() {
         const timeline = gsap.timeline({ onComplete: finish });
 
         if (reducedMotion) {
-          counter.textContent = returning ? 'Synced' : '100';
+          counter.textContent = returning ? 'Ready' : '100';
           indicator.setAttribute('aria-valuenow', '100');
           timeline.set(elements, { autoAlpha: 1, filter: 'none' })
             .to(overlay, { opacity: 0, duration: 0.2, delay: 0.3 });

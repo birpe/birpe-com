@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState, type RefObject } from 'react';
+import { useCallback, useLayoutEffect, useState, type RefObject } from 'react';
 import { gsap } from 'gsap';
 
 /** One loader-driven entrance timeline. Markup owns the word spans so React stays in control. */
@@ -30,6 +30,7 @@ export function useHeroIntro(scope: RefObject<HTMLElement | null>) {
 
       // A live preference change reveals the finished layout instead of replaying it.
       if (hasPlayed) {
+        gsap.killTweensOf(words);
         gsap.set([...pieces, ...words], { clearProps: 'opacity,visibility,transform,color' });
         done();
         return;
@@ -48,18 +49,6 @@ export function useHeroIntro(scope: RefObject<HTMLElement | null>) {
         gsap.set(select('[data-hero-logo], [data-hero-nav], [data-hero-button]'), { y: '1.5rem', scale: 0.9 });
 
         timeline.set(text, { autoAlpha: 1 }, 0);
-        root.querySelectorAll('[data-hero-text]').forEach((line) => {
-          line.querySelectorAll<HTMLElement>('[data-hero-word]').forEach((word, index) => {
-            timeline.to(word, {
-              keyframes: [
-                { opacity: 1, color: '#0780FD', duration: 0.05 },
-                { color: '#3B9BFC', duration: 0.05 },
-                { color: restColor, opacity: word.dataset.muted === 'true' ? 0.5 : 1, duration: 0.05 },
-              ],
-            }, index * 0.2);
-          });
-        });
-
         timeline.to(select('[data-hero-logo]'), { autoAlpha: 1, y: 0, scale: 1, duration: 0.5 }, 0.1)
           .to(select('[data-hero-nav]'), { autoAlpha: 1, y: 0, scale: 1, duration: 0.6 }, 0.2)
           .to(select('[data-hero-button]'), { autoAlpha: 1, y: 0, scale: 1, duration: 0.5 }, 0.35)
@@ -84,7 +73,40 @@ export function useHeroIntro(scope: RefObject<HTMLElement | null>) {
       };
     }, root);
 
-    return () => media.revert();
+    return () => {
+      gsap.killTweensOf(root.querySelectorAll('[data-hero-word]'));
+      media.revert();
+    };
   }, [scope]);
-  return introDone;
+
+  // The falling word calls these, so the tagline only ever shows beside the finished word.
+  const showTagline = useCallback(() => {
+    const root = scope.current;
+    if (!root) return;
+    const words = gsap.utils.toArray<HTMLElement>(root.querySelectorAll('[data-hero-word]'));
+    const restColor = getComputedStyle(root).color;
+    gsap.killTweensOf(words);
+    gsap.set(words, { opacity: 0, color: '#0780FD' });
+    words.forEach((word, index) => {
+      gsap.to(word, {
+        delay: index * 0.2,
+        keyframes: [
+          { opacity: 1, color: '#0780FD', duration: 0.05 },
+          { color: '#3B9BFC', duration: 0.05 },
+          { color: restColor, opacity: word.dataset.muted === 'true' ? 0.5 : 1, duration: 0.05 },
+        ],
+        // Hands the color back to CSS, so it follows later theme changes.
+        onComplete: () => { gsap.set(word, { clearProps: 'color' }); },
+      });
+    });
+  }, [scope]);
+
+  const hideTagline = useCallback((duration: number) => {
+    const words = scope.current?.querySelectorAll('[data-hero-word]');
+    if (!words) return;
+    gsap.killTweensOf(words);
+    gsap.to(words, { opacity: 0, duration, ease: 'power1.inOut' });
+  }, [scope]);
+
+  return { introDone, showTagline, hideTagline };
 }

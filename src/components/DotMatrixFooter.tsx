@@ -199,10 +199,10 @@ export default function DotMatrixFooter() {
   return (
     <footer id="footer" ref={footerRef} className="dot-matrix-footer" aria-label="Birpe">
       <div className="footer-top">
-        <a href="#top" className="footer-logo" aria-label="Birpe home"><img src="/assets/images/bird-logo.png" alt="" width="64" height="64" /><span className="u-h2-5">birpe</span></a>
+        <div><a href="#top" className="footer-logo" aria-label="Birpe home"><img src="/assets/images/bird-logo.png" alt="" width="64" height="64" /><span className="u-h2-5">birpe</span></a><p className="footer-tagline u-body-3 u-fg-64">Life, a little lighter.</p></div>
         <nav className="footer-links" aria-label="Footer navigation">
-          <div><a className="u-title" href="#what-you-can-do"><RollText text="Examples" /></a><a className="u-title-s u-fg-50" href="#steps"><RollText text="Four moves" /></a><a className="u-title-s u-fg-50" href="#try-a-task"><RollText text="Try a task" /></a></div>
-          <div><a className="u-title" href="#how-it-works"><RollText text="How it works" /></a><a className="u-title-s u-fg-50" href="#faqs"><RollText text="FAQs" /></a></div>
+          <div><a className="u-title" href="#what-birpe-does"><RollText text="What Birpe does" /></a><a className="u-title-s u-fg-50" href="#how-it-works"><RollText text="How it works" /></a><a className="u-title-s u-fg-50" href="#faqs"><RollText text="FAQs" /></a></div>
+          <div><a className="u-title" href="#waitlist"><RollText text="Join the waitlist" /></a><a className="u-title-s u-fg-50" href="#try-a-task"><RollText text="Try a sample task" /></a></div>
         </nav>
       </div>
       <div className="footer-meta u-small-1 u-fg-64"><span>©2026 Birpe. All rights reserved.</span><a href="#top">Back to top ↑</a></div>

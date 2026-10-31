@@ -1,6 +1,6 @@
 # Birpe
 
-Birpe is a React, TypeScript, and Tailwind CSS site. The page opens with a preloader, then a hero built around the falling-block Birpe word, then a two-column section grid, feature cards with a local task preview, a looping how-it-works list, four sticky steps, an FAQ, a waitlist sign-up, and a dot-matrix footer card. The structure follows [fourmula.ai](https://fourmula.ai/) in Birpe's own colors.
+Birpe is a React, TypeScript, and Tailwind CSS site. The page opens with a preloader, then a hero with a one-sentence pitch above the falling-block Birpe word, then feature cards with a local task preview, a looping list of example jobs, four sticky how-it-works steps, an FAQ, a waitlist card, and a dot-matrix footer card. The structure follows [fourmula.ai](https://fourmula.ai/) in Birpe's own colors.
 
 The previous source, page HTML, and README are backed up in `_archive/homepage-before-reset-2026-10-31.tar.gz`. Existing components and assets remain available for reuse; `public/assets/images/ring/` is no longer used by the page.
 
@@ -18,7 +18,7 @@ The active homepage follows the pasted reference's viewport-based scaling and ty
 
 `src/styles/global.css` defines all 15 styles from the section-by-section reference: Display 120px, H1 88px, H2.5 64px, H3 52px, H4 36px, Title 3 24px, Body 3 20px, Tag and Body 1 18px, Button 17px, Body 2 and Title 1 16px, Title 2 14px, Small 1 12px, and Small 2 10px at the desktop design width. Leading, weights, and tracking follow the supplied table. Tablet changes Display and H1; phone applies the supplied smaller scale. SF Pro Display uses local font lookup with Arial as the reference fallback.
 
-The desktop section grid has a 28.5rem left column and 2rem gutters. Major sections use 10rem spacing. The hero stays at `100svh` and places small metadata in the bottom corners. The falling-block word fills the hero, with the tagline beneath it. The local task composer lives in the feature section. Feature cards use .5rem outer padding/gaps, 5rem desktop inner padding, and 36rem text stacks. They pair an interactive composer with an illustrative task brief; the carousel artwork is not repeated in later sections. Below 992px, section grids and feature cards stack and use 2rem card padding so tablet headings do not collapse into a narrow column. The first step counts the intro’s 6rem bottom padding toward its 7.5rem separation, avoiding a doubled gap. The how-it-works section’s bottom padding supplies the following section’s 10rem separation. The keyboard-accessible native FAQ follows the reference’s spacing and type roles. The footer card has 3rem corners, 2rem padding, and a height of `min(100svh - 1rem, 60rem)`.
+The desktop section grid has a 28.5rem left column and 2rem gutters. Major sections use `--section-space`: 5rem, or 3rem on phones. The hero's height comes from its content: the pitch, then the falling-block word at full width, capped so both fit the first screen on short displays. The local task composer lives in the feature section. Feature cards use .5rem outer padding/gaps and size to their content. Below 992px, section grids, feature cards, and the waitlist card stack and use 2rem card padding so tablet headings do not collapse into a narrow column. Each step's visual takes the height the slide has left, so no slide ends in empty blue. The FAQ puts its heading in the left column and the keyboard-accessible native questions beside it. The waitlist and footer cards sit .5rem apart at the end of the page.
 
 `src/lib/viewportZoom.ts` implements the reference's custom zoom: Ctrl/Cmd plus or minus changes `--user-zoom` by 0.1, and Ctrl/Cmd 0 resets it. The range is 0.5–5.0. This supersedes the earlier native-zoom-only compromise because a pure viewport root counteracts native browser zoom. Geometry consumers refresh when the custom zoom changes. At 200% and above, grids stack and controls wrap so enlarged content stays reachable.
 
@@ -36,7 +36,7 @@ The sign-up form posts to `worker/index.ts`, which stores emails in the `birpe-w
 
 `src/components/Preloader.tsx` owns the GSAP blur entrance and exit, checkpoint counter, and four-image slideshow. `src/styles/preloader.css` contains the layout and eight-step spinner. The image cards in `public/assets/images/preloader/` are sample Birpe task illustrations; replace them or change the `IMAGES` array to use final product imagery.
 
-The first visit plays for about 5.3 seconds after the window load event. Later visits play at five times the speed and show “Synced.” The browser stores the completed-visit flag under `birpe:preloader:seen`; remove that key from local storage to preview the full sequence again. Reduced-motion users get a short fade without the blur, slideshow, or spinner animation.
+The first visit plays for about 5.3 seconds after the window load event. Later visits play at five times the speed and show “Ready.” The browser stores the completed-visit flag under `birpe:preloader:seen`; remove that key from local storage to preview the full sequence again. Reduced-motion users get a short fade without the blur, slideshow, or spinner animation.
 
 Listen for `preloader:done` on `document` or `window` to start home-screen animations. The event is dispatched once on `document` and bubbles to `window` after the overlay fades out; scrolling unlocks one second later (0.2 seconds on return visits). Unmounting the component also cleans up its animations, timers, and scroll lock.
 
@@ -44,9 +44,9 @@ Listen for `preloader:done` on `document` or `window` to start home-screen anima
 
 `src/components/BirpeHero.tsx` owns the hero markup and interactive local preview. `src/lib/useHeroIntro.ts` pre-hides its pieces in a layout effect, then starts a single paused GSAP timeline on `preloader:done`. A CSS waiting state also prevents a flash before the hook runs. Words are rendered as React spans, without rewriting HTML.
 
-The timeline flashes the tagline's words through `#0780FD` and `#3B9BFC` into the text color, with 0.2 seconds between words, and they settle at 50% opacity. The logo rises 1.5rem from 90% scale at 0.1 seconds over 0.5 seconds, navigation does the same at 0.2 over 0.6 seconds, and the header button rises at 0.35 seconds. The corner metadata fades in at 0.35 seconds. Hero entrances use `power2.out`. The word starts falling when the timeline finishes.
+The logo rises 1.5rem from 90% scale at 0.1 seconds over 0.5 seconds, navigation does the same at 0.2 over 0.6 seconds, and the header button rises at 0.35 seconds. The pitch fades in at 0.35 seconds. Hero entrances use `power2.out`. The word starts falling when the timeline finishes.
 
-The intro runs once per mount, cleans up its listener and animations, and shows the finished layout for reduced-motion preferences, including changes during the entrance. The examples populate the composer and display predefined suggestions locally. The attachment control only shows the selected filename; nothing is uploaded and no AI service is connected.
+The intro runs once per mount, cleans up its listener and animations, and shows the finished layout for reduced-motion preferences, including changes during the entrance. The examples populate the composer and display predefined samples of how Birpe would handle each job. Nothing is sent and no AI service is connected.
 
 ## Header controls
 
@@ -66,9 +66,9 @@ The four task illustrations appear in the task preview. The loader also previews
 
 ## Birpe word
 
-`TetrisSkyline` fills the hero with the word "birpe", drawn on a 27-by-9 board. `src/lib/tetris.ts` tiles the letters with true tetrominoes, plus a single block for the dot on the i, in an order where no piece has to pass through one that has landed. The page's h1, “Your personal agent”, sits in the board's bottom two rows, left of the p's descender, and scales with the board through container units; below 992px it follows the word at nearly the word's width. Its words flash in through the hero intro and settle at 50% opacity.
+`TetrisSkyline` fills the hero with the word "birpe", drawn on a 27-by-9 board. `src/lib/tetris.ts` tiles the letters with true tetrominoes, plus a single block for the dot on the i, in an order where no piece has to pass through one that has landed. The page's h1, “Your personal agent”, sits in the board's bottom two rows, left of the p's descender, and scales with the board through container units; below 992px it follows the word at nearly the word's width. Its words wait for the finished word: once the last piece locks they flash through `#0780FD` and `#3B9BFC` into the text color, 0.2 seconds apart, and settle at 50% opacity.
 
-After the intro finishes, each piece enters above the board turned and off to one side, drops one whole row every 0.03 seconds, shifts and turns into place on the way down, and flashes as it locks. Falls overlap so the word completes in about three seconds on every device. It holds for six seconds, fades, and rebuilds. Playback pauses offscreen and while the document is hidden. A four-second CSS fallback shows the word if the intro signal never arrives, and reduced motion shows the finished word immediately, including when the preference changes while the page is open. The board cannot receive focus and does not intercept pointer input.
+After the intro finishes, each piece enters above the board turned and off to one side, drops one whole row every 0.03 seconds, shifts and turns into place on the way down, and flashes as it locks. Falls overlap so the word completes in about three seconds on every device. It holds for six seconds, fades along with the tagline, and rebuilds. Playback pauses offscreen and while the document is hidden. A four-second CSS fallback shows the word if the intro signal never arrives, and reduced motion shows the finished word immediately, including when the preference changes while the page is open. The board cannot receive focus and does not intercept pointer input.
 
 `src/lib/motion.ts` defines the six shared easing curves (`out-expo`, `rise`, `soft`, `snappy`, `pop`, and `standard`) and registers their matching CSS variables and GSAP functions. Hero entrances use the reference’s `power2.out`, page reveals use `out-expo`; hero hover transitions and skyline fades use `soft`. Native scrolling and preloader timing remain unchanged; no scrolling library is required.
 
@@ -94,7 +94,7 @@ The mouse lens has a 200 CSS-pixel radius and a minimum dot scale of .25, using 
 src/
   components/
     BirpeLanding.tsx       Preloader, page, and dot-matrix footer
-    BirpeHero.tsx          Header, hero, feature preview, how-it-works, steps, and FAQ
+    BirpeHero.tsx          Header, hero, feature preview, example jobs, how-it-works steps, FAQ, and waitlist
     TetrisSkyline.tsx      The falling-block Birpe word in the hero
     DotMatrixFooter.tsx    Footer card, measured dot field, dissolve animation, and cursor lens
     Preloader.tsx          Custom GSAP loading sequence
