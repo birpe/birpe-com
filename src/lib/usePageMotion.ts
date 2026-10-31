@@ -6,7 +6,7 @@ import { motionEase } from './motion';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
-/** Native-scroll entrance effects and CSS loops, released by the preloader. */
+/** Native-scroll entrance effects and CSS loops, released once the hero word is built. */
 export function usePageMotion(scope: RefObject<HTMLElement | null>) {
   useEffect(() => {
     const page = scope.current;
@@ -22,9 +22,12 @@ export function usePageMotion(scope: RefObject<HTMLElement | null>) {
       page.dataset.motionReady = 'true';
 
       media.add('(prefers-reduced-motion: no-preference)', () => {
+        // A clamped trigger starts at scroll 0, so what's already on screen would wait for the first scroll.
+        const alreadyReached = (element: HTMLElement) => element.getBoundingClientRect().top < window.innerHeight * 0.88;
         const elements = gsap.utils.toArray<HTMLElement>('[data-reveal]', page);
 
         elements.forEach((element) => {
+          const reached = alreadyReached(element);
           gsap.from(element, {
             opacity: 0,
             y: '1.5rem',
@@ -34,7 +37,7 @@ export function usePageMotion(scope: RefObject<HTMLElement | null>) {
             onComplete(this: gsap.core.Tween) {
               this.scrollTrigger?.kill(false);
             },
-            scrollTrigger: {
+            scrollTrigger: reached ? undefined : {
               trigger: element,
               start: 'clamp(top 88%)',
               once: true,
@@ -46,31 +49,36 @@ export function usePageMotion(scope: RefObject<HTMLElement | null>) {
 
         headings.forEach((heading) => {
           gsap.set(heading, { autoAlpha: 0 });
+          const reveal = () => {
+            // Reverting at the end hands each word back to its CSS color, including muted spans.
+            const split = SplitText.create(heading, { type: 'words' });
+            const words = split.words as HTMLElement[];
+            const restColor = getComputedStyle(heading).color;
+            gsap.set(words, { opacity: 0, color: '#0780FD' });
+            gsap.set(heading, { clearProps: 'opacity,visibility' });
+            const timeline = gsap.timeline({ onComplete: () => split.revert() });
+            words.forEach((word, index) => {
+              timeline.to(word, {
+                keyframes: [
+                  { opacity: 1, color: '#0780FD', duration: 0.2, ease: 'power2.out' },
+                  { color: '#3B9BFC', duration: 0.05, ease: 'none' },
+                  // u-fg-50 resolves to a color() value GSAP can't tween, so muted words fade by opacity.
+                  { color: restColor, opacity: word.closest('.u-fg-50') ? 0.5 : 1, duration: 0.1, ease: 'none' },
+                ],
+              }, index * 0.1);
+            });
+          };
+          if (alreadyReached(heading)) {
+            reveal();
+            return;
+          }
           ScrollTrigger.create({
             trigger: heading,
             start: 'clamp(top 88%)',
             // Stays active to the page end so an anchor jump past a heading still reveals it.
             end: 'max',
             once: true,
-            onEnter() {
-              // Reverting at the end hands each word back to its CSS color, including muted spans.
-              const split = SplitText.create(heading, { type: 'words' });
-              const words = split.words as HTMLElement[];
-              const restColor = getComputedStyle(heading).color;
-              gsap.set(words, { opacity: 0, color: '#0780FD' });
-              gsap.set(heading, { clearProps: 'opacity,visibility' });
-              const timeline = gsap.timeline({ onComplete: () => split.revert() });
-              words.forEach((word, index) => {
-                timeline.to(word, {
-                  keyframes: [
-                    { opacity: 1, color: '#0780FD', duration: 0.2, ease: 'power2.out' },
-                    { color: '#3B9BFC', duration: 0.05, ease: 'none' },
-                    // u-fg-50 resolves to a color() value GSAP can't tween, so muted words fade by opacity.
-                    { color: restColor, opacity: word.closest('.u-fg-50') ? 0.5 : 1, duration: 0.1, ease: 'none' },
-                  ],
-                }, index * 0.1);
-              });
-            },
+            onEnter: reveal,
           });
         });
 
@@ -92,13 +100,13 @@ export function usePageMotion(scope: RefObject<HTMLElement | null>) {
       }, page);
     };
 
-    window.addEventListener('preloader:done', start);
+    window.addEventListener('hero:built', start);
     // Also supports mounting content after the loader has already finished.
     if (!document.documentElement.classList.contains('is-loading')) start();
 
     return () => {
       disposed = true;
-      window.removeEventListener('preloader:done', start);
+      window.removeEventListener('hero:built', start);
       media.revert();
       delete page.dataset.motionReady;
     };

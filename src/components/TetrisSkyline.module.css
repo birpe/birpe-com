@@ -16,12 +16,9 @@
   fill: currentColor;
 }
 
-/* Hidden until the intro releases the fall; the delay shows the word if that signal never arrives. */
+/* Hidden until the intro releases the fall, so the finished word never shows before the pieces lift off. */
 @media (prefers-reduced-motion: no-preference) {
   .root[data-ready='false'] .board {
     opacity: 0;
-    animation: appear 0s linear 4s forwards;
   }
 }
-
-@keyframes appear { to { opacity: 1; } }

@@ -1,14 +1,24 @@
-import { useCallback, useLayoutEffect, useState, type RefObject } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { gsap } from 'gsap';
 
-/** One loader-driven entrance timeline. Markup owns the word spans so React stays in control. */
+// The word builds in about three seconds; this keeps a paused fall from leaving the page blank and locked.
+const REVEAL_FALLBACK_MS = 4000;
+
+/** The loader releases the falling word, and the finished word releases everything else. Markup owns the word spans so React stays in control. */
 export function useHeroIntro(scope: RefObject<HTMLElement | null>) {
-  const [introDone, setIntroDone] = useState(false);
+  const [wordReady, setWordReady] = useState(false);
+  const reveal = useRef<() => void>(() => {});
   useLayoutEffect(() => {
     const root = scope.current;
     if (!root) return;
     const media = gsap.matchMedia();
     let hasPlayed = false;
+    let announced = false;
+    const announce = () => {
+      if (announced) return;
+      announced = true;
+      document.dispatchEvent(new CustomEvent('hero:built', { bubbles: true }));
+    };
 
     media.add({
       motion: '(prefers-reduced-motion: no-preference)',
@@ -24,7 +34,6 @@ export function useHeroIntro(scope: RefObject<HTMLElement | null>) {
         // Hands the words back to CSS, so they follow later theme changes.
         gsap.set(words, { clearProps: 'color' });
         root.dataset.introState = 'done';
-        setIntroDone(true);
         root.inert = false;
       };
 
@@ -33,6 +42,7 @@ export function useHeroIntro(scope: RefObject<HTMLElement | null>) {
         gsap.killTweensOf(words);
         gsap.set([...pieces, ...words], { clearProps: 'opacity,visibility,transform,color' });
         done();
+        announce();
         return;
       }
 
@@ -55,20 +65,38 @@ export function useHeroIntro(scope: RefObject<HTMLElement | null>) {
           .to(select('[data-hero-delayed]'), { autoAlpha: 1, duration: 0.4 }, 0.35);
       }
 
+      let revealed = false;
+      let fallback: number | undefined;
+      reveal.current = () => {
+        if (revealed) return;
+        revealed = true;
+        window.clearTimeout(fallback);
+        root.dataset.introState = 'playing';
+        root.inert = false;
+        timeline.play();
+        announce();
+      };
+
       let released = false;
       const play = () => {
         if (released) return;
         released = true;
         hasPlayed = true;
-        root.dataset.introState = 'playing';
-        root.inert = false;
-        timeline.play();
+        root.dataset.introState = 'falling';
+        setWordReady(true);
+        // The scroll lock blocks the browser's own jump to an anchor, so it happens here.
+        document.getElementById(location.hash.slice(1))?.scrollIntoView();
+        // No fall to wait for: reduced motion skips it, and a page opened on an anchor has the word offscreen.
+        if (context.conditions?.reduced || window.scrollY > 0) reveal.current();
+        else fallback = window.setTimeout(reveal.current, REVEAL_FALLBACK_MS);
       };
       window.addEventListener('preloader:done', play);
       if (!document.documentElement.classList.contains('is-loading')) play();
 
       return () => {
         window.removeEventListener('preloader:done', play);
+        window.clearTimeout(fallback);
+        reveal.current = () => {};
         root.inert = false;
       };
     }, root);
@@ -83,6 +111,7 @@ export function useHeroIntro(scope: RefObject<HTMLElement | null>) {
   const showTagline = useCallback(() => {
     const root = scope.current;
     if (!root) return;
+    reveal.current();
     const words = gsap.utils.toArray<HTMLElement>(root.querySelectorAll('[data-hero-word]'));
     const restColor = getComputedStyle(root).color;
     gsap.killTweensOf(words);
@@ -108,5 +137,5 @@ export function useHeroIntro(scope: RefObject<HTMLElement | null>) {
     gsap.to(words, { opacity: 0, duration, ease: 'power1.inOut' });
   }, [scope]);
 
-  return { introDone, showTagline, hideTagline };
+  return { wordReady, showTagline, hideTagline };
 }

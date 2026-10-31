@@ -38,21 +38,22 @@ html {
   --font-display: 'SF Pro Display', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   --font: var(--font-display);
   --fg: #020108;
-  --display: 7.5rem;
-  --h1: 5.5rem;
-  --h2-5: 4rem;
-  --h3: 3.25rem;
-  --h4: 2.25rem;
-  --title-3: 1.5rem;
-  --body-3: 1.25rem;
-  --tag: 1.125rem;
-  --body-1: 1.125rem;
-  --btn: 1.0625rem;
-  --body-2: 1rem;
-  --title-1: 1rem;
-  --title-2: .875rem;
-  --small-1: .75rem;
-  --small-2: .625rem;
+  --display: 6rem;
+  --h1: 4.4rem;
+  --h2-5: 3.2rem;
+  --h3: 2.6rem;
+  --h4: 1.8rem;
+  --title-3: 1.2rem;
+  /* Sizes follow the viewport, so the floor keeps small text readable on narrow laptops. */
+  --body-3: max(1rem, 10px);
+  --tag: max(.9rem, 10px);
+  --body-1: max(.9rem, 10px);
+  --btn: max(.85rem, 10px);
+  --body-2: max(.8rem, 10px);
+  --title-1: max(.8rem, 10px);
+  --title-2: max(.7rem, 10px);
+  --small-1: max(.6rem, 10px);
+  --small-2: max(.5rem, 10px);
   --section-column: 28.5rem;
   --gutter: 2rem;
   --section-space: 5rem;
@@ -73,38 +74,38 @@ html[data-theme='dark'] {
 
 @media (max-width: 991px) {
   html { font-size: calc(1.8779342723vw * var(--user-zoom)); }
-  :root { --display: 5.5rem; --h1: 4.5rem; }
+  :root { --display: 4.4rem; --h1: 3.6rem; }
 }
 
 @media (max-width: 767px) {
   html { font-size: calc(4.1025641026vw * var(--user-zoom)); }
   :root {
-    --display: 2.25rem;
-    --h1: 2.5rem;
-    --h2-5: 2.25rem;
-    --h3: 1.5rem;
-    --h4: 2rem;
-    --body-1: 1rem;
-    --body-2: .875rem;
+    --display: 1.8rem;
+    --h1: 2rem;
+    --h2-5: 1.8rem;
+    --h3: 1.2rem;
+    --h4: 1.6rem;
+    --body-1: max(.8rem, 10px);
+    --body-2: max(.7rem, 10px);
     --section-space: 3rem;
   }
 }
 
-.u-h2 { font: 400 var(--display)/1 var(--font); letter-spacing: -.225rem; }
-.u-h1 { font: 400 var(--h1)/.94 var(--font); letter-spacing: -.165rem; }
-.u-h2-5 { font: 400 var(--h2-5)/1 var(--font); letter-spacing: -.12rem; }
-.u-h3 { font: 500 var(--h3)/1.05 var(--font); letter-spacing: -.1rem; }
-.u-h4 { font: 500 var(--h4)/1.2 var(--font); letter-spacing: -.027rem; }
-.u-title-3 { font: 500 var(--title-3)/1.5 var(--font); letter-spacing: -.013rem; }
+.u-h2 { font: 400 var(--display)/1 var(--font); letter-spacing: -.18rem; }
+.u-h1 { font: 400 var(--h1)/.94 var(--font); letter-spacing: -.132rem; }
+.u-h2-5 { font: 400 var(--h2-5)/1 var(--font); letter-spacing: -.096rem; }
+.u-h3 { font: 500 var(--h3)/1.05 var(--font); letter-spacing: -.08rem; }
+.u-h4 { font: 500 var(--h4)/1.2 var(--font); letter-spacing: -.0216rem; }
+.u-title-3 { font: 500 var(--title-3)/1.5 var(--font); letter-spacing: -.0104rem; }
 .u-body-3 { font: 500 var(--body-3)/1.25 var(--font); letter-spacing: normal; }
 .u-tag { font: 400 var(--tag)/1.5 var(--font); letter-spacing: normal; }
 .u-body { font: 400 var(--body-1)/1.4 var(--font); letter-spacing: normal; }
-.u-btn { font: 400 var(--btn)/1.2 var(--font); letter-spacing: -.021rem; }
+.u-btn { font: 400 var(--btn)/1.2 var(--font); letter-spacing: -.0168rem; }
 .u-body-2 { font: 400 var(--body-2)/1.25 var(--font); letter-spacing: normal; }
-.u-title { font: 500 var(--title-1)/1.5 var(--font); letter-spacing: -.015rem; }
-.u-title-s { font: 500 var(--title-2)/1.5 var(--font); letter-spacing: -.013rem; }
-.u-small-1 { font: 400 var(--small-1)/1.5 var(--font); letter-spacing: -.0075rem; }
-.u-small { font: 500 var(--small-2)/1 var(--font); letter-spacing: -.0125rem; text-transform: uppercase; }
+.u-title { font: 500 var(--title-1)/1.5 var(--font); letter-spacing: -.012rem; }
+.u-title-s { font: 500 var(--title-2)/1.5 var(--font); letter-spacing: -.0104rem; }
+.u-small-1 { font: 400 var(--small-1)/1.5 var(--font); letter-spacing: -.006rem; }
+.u-small { font: 500 var(--small-2)/1 var(--font); letter-spacing: -.01rem; text-transform: uppercase; }
 .u-fg-100 { color: var(--fg); }
 .u-fg-64 { color: color-mix(in srgb, var(--fg) 64%, transparent); }
 .u-fg-50 { color: color-mix(in srgb, var(--fg) 50%, transparent); }

@@ -32,8 +32,13 @@ export default function Preloader() {
     const speed = returning ? 0.2 : 1;
     let disposed = false;
     let flip: number | undefined;
-    let unlock: number | undefined;
     let context: gsap.Context | undefined;
+
+    // Scrolling stays locked while the word builds, because everything below it is still hidden.
+    const unlock = () => {
+      root.style.overflow = previousOverflow;
+      setComplete(true);
+    };
 
     root.classList.add('is-loading');
     root.style.overflow = 'hidden';
@@ -53,11 +58,9 @@ export default function Preloader() {
         // The loader doesn't depend on storage being available.
       }
       overlay.hidden = true;
+      // Registered first: with no fall to wait for, the hero answers during this dispatch.
+      window.addEventListener('hero:built', unlock, { once: true });
       document.dispatchEvent(new CustomEvent('preloader:done', { bubbles: true }));
-      unlock = window.setTimeout(() => {
-        root.style.overflow = previousOverflow;
-        setComplete(true);
-      }, reducedMotion ? 0 : 1000 * speed);
     };
 
     const start = () => {
@@ -124,8 +127,8 @@ export default function Preloader() {
     return () => {
       disposed = true;
       window.removeEventListener('load', start);
+      window.removeEventListener('hero:built', unlock);
       window.clearInterval(flip);
-      window.clearTimeout(unlock);
       context?.revert();
       root.classList.remove('is-loading');
       root.style.overflow = previousOverflow;

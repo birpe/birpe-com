@@ -37,7 +37,7 @@ export default function BirpeHero() {
   const menu = useRef<HTMLDivElement>(null);
   const progress = useRef<HTMLSpanElement>(null);
   const header = useRef<HTMLElement>(null);
-  const { introDone, showTagline, hideTagline } = useHeroIntro(root);
+  const { wordReady, showTagline, hideTagline } = useHeroIntro(root);
 
   // The footer repeats the logo and links, so the fixed header steps aside before it reaches them.
   useEffect(() => {
@@ -182,7 +182,7 @@ export default function BirpeHero() {
           <a className="hero-scroll u-btn" href="#what-birpe-does">See what it does <span aria-hidden="true">↓</span></a>
         </div>
         <div className="hero-board">
-          <TetrisSkyline ready={introDone} onBuilt={showTagline} onClearing={hideTagline} />
+          <TetrisSkyline ready={wordReady} onBuilt={showTagline} onClearing={hideTagline} />
           <h1 id="hero-title" className="hero-tagline u-h1" data-intro data-hero-text aria-label="Your personal agent"><Words text="Your personal agent" muted /></h1>
         </div>
       </section>

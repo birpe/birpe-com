@@ -1,5 +1,7 @@
 .hero-shell { color: var(--fg); background: var(--bg); overflow-wrap: anywhere; }
 .hero-shell[data-intro-state='waiting'] [data-intro] { visibility: hidden; }
+/* The word goes first: everything below the hero stays hidden until it is built. */
+.hero-shell:is([data-intro-state='waiting'], [data-intro-state='falling']) > section:not(#top) { visibility: hidden; }
 .hero-shell :is(button, a, textarea) { -webkit-tap-highlight-color: transparent; }
 .hero-shell :is(button, a) { touch-action: manipulation; }
 .hero-shell button { cursor: pointer; }
@@ -53,7 +55,7 @@
 /* Height caps the width on short screens so the word still fits the first screen. The container lets the tagline scale with the word. */
 .hero-board { position: relative; width: min(72%, calc((100svh - 17rem) * 27 / 9)); container-type: inline-size; }
 /* Sits in the word's bottom two rows, left of the p's descender. */
-.hero-shell .hero-tagline { position: absolute; left: 0; top: calc(100% * 7 / 9); display: flex; align-items: center; column-gap: .25em; height: calc(100% * 2 / 9); font-size: 6cqw; white-space: nowrap; }
+.hero-shell .hero-tagline { position: absolute; left: 0; top: calc(100% * 7 / 9); display: flex; align-items: center; column-gap: .25em; height: calc(100% * 2 / 9); font-size: 4.8cqw; white-space: nowrap; }
 .hero-word { display: inline-block; max-width: 100%; }
 .hero-word[data-muted='true'] { opacity: .5; }
 .hero-scroll { display: flex; flex-shrink: 0; gap: .5rem; padding-block: .5rem; white-space: nowrap; }
@@ -172,7 +174,10 @@
 .waitlist-form .btn-pill:hover { background: var(--brand-blue-night); color: #fff; }
 [data-waitlist-row] { position: relative; display: flex; gap: .5rem; }
 /* The 16px floor stops iPhones zooming the page when the field is focused. */
-[data-waitlist] input[name='email'] { flex: 1; min-width: 0; padding: .875rem 1.5rem; border: 1px solid var(--line); border-radius: 10rem; background: var(--surface); color: var(--fg); font-size: max(1rem, 16px); }
+[data-waitlist] input[name='email'] { flex: 1; min-width: 0; padding: .875rem 1.5rem; border: 1px solid var(--line); border-radius: 10rem; background: var(--surface); color: var(--fg); font-size: 16px; }
+@media (hover: hover) and (pointer: fine) {
+  [data-waitlist] input[name='email'] { font-size: var(--btn); }
+}
 [data-waitlist] input[name='email']::placeholder { color: var(--fg); opacity: .64; }
 [data-waitlist] input[name='email']:focus-visible { outline: .125rem solid var(--brand-blue); outline-offset: .125rem; }
 [data-waitlist] button { flex: none; white-space: nowrap; cursor: pointer; }
@@ -189,7 +194,7 @@ html[data-large-zoom] [data-waitlist-row] { flex-direction: column; }
 
 @media (max-width: 991px) {
   /* Those rows are too short for the text on tablets and phones, so it follows the word instead. */
-  .hero-shell .hero-tagline { position: static; height: auto; margin-top: 1rem; font-size: 9.6cqw; }
+  .hero-shell .hero-tagline { position: static; height: auto; margin-top: 1rem; font-size: 7.68cqw; }
   .section-grid, .steps-intro, .waitlist-section { grid-template-columns: minmax(0, 1fr); }
   .waitlist-section { gap: 2rem; padding: 2rem; border-radius: 2rem; }
   .hero-board { width: 80%; }
@@ -218,7 +223,7 @@ html[data-large-zoom] [data-waitlist-row] { flex-direction: column; }
   .hero-opening { gap: 1.5rem; padding: 5rem 1rem 1.5rem; }
   .hero-lead { flex-direction: column; align-items: flex-start; gap: 1rem; }
   .hero-board { width: 100%; }
-  .hero-lead > p { font-size: 1.5rem; }
+  .hero-lead > p { font-size: 1.2rem; }
   .section-grid, .feature-cards, .steps-intro, .step-info { grid-template-columns: minmax(0, 1fr); }
   .steps-intro { gap: .75rem; padding: 0 1rem 1.5rem; }
   .hero-shell .section-tag, .hero-shell .section-headline { padding-inline: 1rem; }
@@ -230,7 +235,7 @@ html[data-large-zoom] [data-waitlist-row] { flex-direction: column; }
   .app-frame { padding: 1rem; gap: 1rem; border-radius: 1.5rem; }
   .app-frame-thumbs { gap: .5rem; }
   .app-thumb img { padding: .375rem; border-radius: .5rem; aspect-ratio: 1; }
-  .app-thumb span { font-size: .75rem; }
+  .app-thumb span { font-size: max(.6rem, 10px); }
   .context-document { padding: 1rem; border-radius: 1rem; }
   .how-left { gap: 1.5rem; padding: 1.5rem 1rem; }
   .how-actions { height: 14rem; }
