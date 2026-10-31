@@ -2,6 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>document.documentElement.classList.add('is-loading');try{if(localStorage.getItem('birpe:theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+    <style>html.is-loading{overflow:hidden}</style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Your AI agent for a lighter day. Meet Birpe." />
     <meta name="theme-color" content="#ffffff" />
@@ -23,7 +25,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <noscript><main><h1>Birpe — Your everyday AI agent</h1><p>Less on your mind. More room for life.</p></main></noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

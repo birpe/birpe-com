@@ -41,14 +41,15 @@ export class OceanEngine {
 
   /** `speed` scales simulated time: 0.5 runs the whole ocean at half pace. */
   constructor(private canvas: HTMLCanvasElement, sharks?: SharkSpec[], theme?: OceanTheme, private speed = 1, intro?: LogoIntro) {
-    this.world = new World(sharks);
+    this.world = new World(sharks, theme?.fishCount);
+    this.world.fishHome = theme?.fishHome ?? null;
     this.renderer = new AsciiRenderer(canvas, theme);
     this.renderer.setFontFamily(getComputedStyle(canvas).fontFamily);
     this.reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     // Reduced motion: the logo simply stays, and the birds are in the sky as ever.
     if (intro && !this.reducedMotion.matches) {
       this.world.holdBirds = true;
-      this.flight = new LogoFlight(intro, this.world, this.renderer, canvas);
+      this.flight = new LogoFlight(intro, this.world, canvas);
     }
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
@@ -167,7 +168,7 @@ export class OceanEngine {
   private onMotionPreference = () => {
     if (this.reducedMotion.matches) {
       cancelAnimationFrame(this.raf);
-      this.flight?.cancel();
+      this.flight?.skip();
       this.flight = null;
       this.drawStill();
     } else {

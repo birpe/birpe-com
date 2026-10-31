@@ -13,7 +13,7 @@
  * so stragglers get picked off. Eaten fish come back later as new schools
  * swimming in from the edges, which keeps the population steady.
  */
-import { flyBird, launchBird, newBird, parkBird, refitBirds, releaseBird, setPerches, type BirdState, type Perch } from "./bird-brain";
+import { flyBird, launchBird, newBird, parkBird, refitBirds, releaseBird, setPerches, type BirdState, type Perch } from "./bird-flight";
 import { angleDiff, clamp, current, rand, randInt, TAU } from "./math";
 import { pickSpecies, SPECIES } from "./species";
 
@@ -101,11 +101,11 @@ export class World {
   pointer = { x: 0, y: 0, active: false };
   /** Spots on the tree where a bird can sit, in px; set by whoever draws the tree. */
   perches: Perch[] = [];
-  /** Per perch: the id of the bird sitting on (or flying to) it, or 0. */
-  perchTaken: number[] = [];
 
   /** Seed the birds parked, to be launched or released later. */
   holdBirds = false;
+  /** Where the fish like to stay, as fractions of the sky's width and height, if anywhere. */
+  fishHome: [number, number] | null = null;
 
   /** Fish neighbourhood radius; the spatial hash bucket size matches it. */
   private perception = 60;
@@ -149,7 +149,7 @@ export class World {
     if (width === prevW && height === prevH) return;
     const grow = baseLength(width, height) / baseLength(prevW, prevH);
     for (const sh of this.sharks) sh.length *= grow;
-    refitBirds(this, width / prevW, height / prevH);
+    for (const sh of this.sharks) refitBirds(sh, width / prevW, height / prevH);
   }
 
   seed() {
@@ -191,7 +191,7 @@ export class World {
         target: null,
         retargetAt: 0,
         depth: size,
-        bird: kind === "bird" ? newBird(x, y, heading, W, H) : undefined,
+        bird: kind === "bird" ? newBird(x, y, heading, W) : undefined,
       });
     }
     // Smaller (farther) sharks draw first so the big one swims over them.
@@ -205,8 +205,8 @@ export class World {
       const sp = SPECIES[species];
       const size = Math.min(randInt(sp.schoolSize[0], sp.schoolSize[1]), total - this.fish.length);
       const millDir: 1 | -1 = Math.random() < 0.5 ? 1 : -1;
-      const cx = rand(W * 0.06, W * 0.94);
-      const cy = rand(H * 0.08, H * 0.92);
+      const cx = this.fishHome ? W * this.fishHome[0] + rand(-0.12, 0.12) * minSide : rand(W * 0.06, W * 0.94);
+      const cy = this.fishHome ? H * this.fishHome[1] + rand(-0.12, 0.12) * minSide : rand(H * 0.08, H * 0.92);
       // Mostly level headings: fish cruise sideways far more than up or down.
       const dir = (Math.random() < 0.5 ? 0 : Math.PI) + rand(-0.5, 0.5);
       for (let k = 0; k < size; k++) {
@@ -246,18 +246,10 @@ export class World {
     }
   }
 
-  /**
-   * Send the parked birds off from one spot, `length` px long: the biggest goes first and swoops
-   * across the sky, and the next slips out from behind it and heads along the top.
-   */
-  launchBirds(x: number, y: number, length: number) {
-    const { width: W, height: H } = this;
-    const birds = this.sharks.filter((sh) => sh.bird?.mode === "parked").reverse();
-    birds.forEach((sh, k) => {
-      // A touch smaller, so the one behind doesn't show round the edges of the first.
-      if (k === 0) launchBird(this, sh, x, y, length, W * 0.5, H * 0.56, 0);
-      else launchBird(this, sh, x, y, length * 0.92, W * 0.9, Math.max(y, H * 0.1), 0.12);
-    });
+  /** Send a parked bird off from (x, y), `length` px long. */
+  launchBird(x: number, y: number, length: number) {
+    const sh = this.sharks.find((s) => s.bird?.mode === "parked");
+    if (sh) launchBird(this, sh, x, y, length);
   }
 
   releaseBirds() {
@@ -401,6 +393,19 @@ export class World {
           const cl = Math.hypot(cx, cy) || 1;
           ax += (-cy / cl) * f.millDir * sp.mill * (1 - f.alarm);
           ay += (cx / cl) * f.millDir * sp.mill * (1 - f.alarm);
+        }
+      }
+
+      // Past a little way from home, a gentle pull back that grows the farther they stray.
+      if (this.fishHome) {
+        const dx = W * this.fishHome[0] - f.x;
+        const dy = H * this.fishHome[1] - f.y;
+        const roam = Math.min(W, H) * 0.2;
+        const d = Math.hypot(dx, dy);
+        if (d > roam) {
+          const k = ((d - roam) / d) * 0.9;
+          ax += dx * k;
+          ay += dy * k;
         }
       }
 

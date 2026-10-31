@@ -1,0 +1,27 @@
+.root {
+  position: relative;
+  overflow: hidden;
+  color: var(--brand-blue);
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.board {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
+}
+
+/* Hidden until the intro releases the fall; the delay shows the word if that signal never arrives. */
+@media (prefers-reduced-motion: no-preference) {
+  .root[data-ready='false'] .board {
+    opacity: 0;
+    animation: appear 0s linear 4s forwards;
+  }
+}
+
+@keyframes appear { to { opacity: 1; } }

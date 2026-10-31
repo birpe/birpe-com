@@ -3,7 +3,7 @@
  * logo's three blues. The two logo views are turned into a solid bird, so it can be seen
  * from any angle as it turns, banks and rolls. Birds are small, so they're painted on a
  * sub-grid three times finer than the character cells (each cell split 2 × 3), with soft
- * edges. Nothing here moves a bird; bird-brain.ts does that.
+ * edges. Nothing here moves a bird; bird-flight.ts does that.
  */
 import { clamp, smoothstep, TAU } from "./math";
 import type { Shark } from "./world";
@@ -334,7 +334,7 @@ const sprites = new WeakMap<Shark, Sprite>();
 /** Centre labels of the sub-cells, with a one-cell empty border; shared, grown as needed. */
 let labels = new Uint8Array(0);
 
-export function makeCanvas(w: number, h: number) {
+function makeCanvas(w: number, h: number) {
   if (typeof OffscreenCanvas !== "undefined") return new OffscreenCanvas(w, h);
   const c = document.createElement("canvas");
   c.width = w;
@@ -352,9 +352,9 @@ function unchanged(drawn: number[], now: number[]) {
 /**
  * Draw a bird as a solid seen from the front of the screen, along its body axes, so it
  * turns, pitches, banks and rolls freely: side-on it is the logo's side view, from above
- * the logo's top view. Poses: flying (both wings beat down from the raised logo pose
- * through level to below the body and back, held up in a shallow V while gliding),
- * flaring to land (wings raised, a touch swept forward), and perched (folded along the body).
+ * the logo's top view. Its wings beat down from the raised logo pose through level to below
+ * the body and back, are held up in a shallow V while gliding, return to the logo pose to
+ * brake, and fold back along the body to dive or perch.
  *
  * Kept light: one ray per sub-cell, with the extra soft-edge samples only along the
  * outline; rays leap across empty space in the body; one image draw per bird; and an
@@ -372,15 +372,15 @@ export function drawBird(ctx: CanvasRenderingContext2D, sh: Shark, cw: number, c
 
   // The wingbeat: a quick downstroke and a slower recovery, the tips trailing back
   // mid-stroke. Below a light flap the wings are held up, gliding.
-  const amp = b.pose === 0 ? clamp((b.flap - 0.15) / 0.85, 0, 1) : 0;
+  const amp = clamp((b.flap - 0.15) / 0.85, 0, 1);
   const u = (((sh.phase / TAU) % 1) + 1) % 1;
   const down = u < 0.42 ? smoothstep(0, 1, u / 0.42) : 1 - smoothstep(0, 1, (u - 0.42) / 0.58);
   const theta = amp * down * Math.PI * 0.8;
-  // Fresh off the logo the wings are still in its pose, and ease out of it.
-  const live = 1 - b.logoPose;
-  const dihedral = b.pose === 0 ? (0.4 + theta * 0.82) * live : 0;
+  // How far from the logo's raised pose, and how far from folded: both blend smoothly.
+  const live = (1 - b.logoPose) * (1 - b.tuck);
+  const dihedral = (0.4 + theta * 0.82) * live;
   // Folded on the perch: swung back along the body, tucked smaller, lying outside it.
-  const sweep = b.pose === 2 ? -1.05 : b.pose === 1 ? 0.12 : -0.22 * Math.sin(theta) * live;
+  const sweep = -0.22 * Math.sin(theta) * live - 1.05 * b.tuck;
   // Each downstroke lifts the body a little, so the bird rides its wingbeat.
   const cx = b.x;
   const cy = b.y - amp * L * 0.035 * (down - 0.5);
@@ -388,7 +388,7 @@ export function drawBird(ctx: CanvasRenderingContext2D, sh: Shark, cw: number, c
   const sy = ch / 3;
 
   let sprite = sprites.get(sh);
-  const now = [cx, cy, L, fx, fy, fz, ux, uy, uz, dihedral, sweep, b.pose, sw, sy];
+  const now = [cx, cy, L, fx, fy, fz, ux, uy, uz, dihedral, sweep, b.tuck, sw, sy];
   if (sprite && unchanged(sprite.drawn, now)) {
     blit(ctx, sprite, cx, cy, sw, sy);
     return;
@@ -398,12 +398,12 @@ export function drawBird(ctx: CanvasRenderingContext2D, sh: Shark, cw: number, c
   const wingSlab = Math.max(WING_SLAB, (0.5 * Math.max(sw, sy)) / L);
   const wing = (side: number): Wing => ({
     side,
-    root: b.pose === 2 ? BOX[1] + 0.01 : 0.05,
+    root: 0.05 + (BOX[1] + 0.01 - 0.05) * b.tuck,
     sinP: Math.sin(dihedral),
     cosP: Math.cos(dihedral),
     sinS: Math.sin(sweep),
     cosS: Math.cos(sweep),
-    size: b.pose === 2 ? 0.72 : 1,
+    size: 1 - 0.28 * b.tuck,
     slab: wingSlab,
   });
   const wings = [wing(1), wing(-1)];
@@ -421,7 +421,7 @@ export function drawBird(ctx: CanvasRenderingContext2D, sh: Shark, cw: number, c
     if (tw === Infinity) return tb === Infinity ? 0 : bodyColor;
     if (tb === Infinity) return 3;
     // A beating wing darkens where it crosses the body; a folded one lies on top of it.
-    if (b.pose === 2) return tw < tb ? 3 : bodyColor;
+    if (b.tuck > 0.6) return tw < tb ? 3 : bodyColor;
     return tw < tb + OVERLAP ? 2 : bodyColor;
   };
 

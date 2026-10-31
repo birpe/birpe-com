@@ -24,75 +24,230 @@
   backface-visibility: hidden;
 }
 
-/* The hero's left margin: GlyphPortal reads this to place the word, and the header and scroll cue line up with it. */
+/* The hero's left margin: GlyphPortal reads this to place the word, and everything else in the opening lines up with it. */
 [data-slipstream-demo] [data-gp-viewport] {
   padding-left: max(clamp(16px, 3cqw, 48px), env(safe-area-inset-left));
 }
 
-[data-slipstream-demo] [data-gp-caption] {
-  inset: auto var(--gp-word-left, 24px) max(16px, env(safe-area-inset-bottom));
-  top: min(calc(var(--gp-word-bottom, 50%) + 24px), calc(100% - 76px));
+/* The opening's scroll link lives with the rest of its copy. */
+[data-slipstream-demo] [data-gp-caption],
+[data-slipstream-demo] [data-gp-touch-picker] {
+  display: none !important;
+}
+
+[data-hero-nav] {
+  position: absolute;
+  z-index: 2;
+  top: max(10px, env(safe-area-inset-top));
+  left: var(--gp-word-left, 16px);
+  right: max(var(--gp-word-left, 16px), env(safe-area-inset-right));
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+[data-hero-cta] {
+  justify-self: end;
+}
+
+[data-hero-link],
+[data-hero-cta] {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+[data-hero-link] {
+  padding: 0 10px;
+  color: #142033;
+  border-radius: 8px;
+}
+
+[data-hero-link]:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+[data-hero-cta] {
+  padding: 0 18px;
+  border-radius: 999px;
+  color: #fff;
+  background: #1859d5;
+  transition: background-color 0.15s ease;
+}
+
+[data-hero-cta]:hover {
+  background: #1349b3;
+}
+
+[data-hero-link]:focus-visible,
+[data-hero-cta]:focus-visible,
+[data-hero-cue]:focus-visible {
+  outline: 2px solid #1859d5;
+  outline-offset: 3px;
+}
+
+.bird-guide {
+  display: block;
+  justify-self: start;
+  padding: 4px;
+  margin: -4px;
+  cursor: pointer;
+}
+
+.bird-guide:focus-visible {
+  outline: 2px solid #1859d5;
+  outline-offset: 2px;
+}
+
+[data-hero-label] {
+  position: absolute;
+  top: calc(var(--gp-word-top, 90px) - 30px);
+  left: var(--gp-word-left, 16px);
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #123f8f;
+}
+
+[data-hero-copy] {
+  position: absolute;
+  top: calc(var(--gp-word-bottom, 50%) + clamp(10px, 2.4cqh, 26px));
+  left: var(--gp-word-left, 16px);
+  right: max(var(--gp-word-left, 16px), env(safe-area-inset-right));
+  display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: flex-start;
+  gap: clamp(8px, 1.6cqh, 16px);
+  max-width: 34rem;
+  color: #142033;
 }
 
-[data-slipstream-demo] [data-gp-hint] {
-  display: none;
+[data-hero-copy] h1 {
+  margin: 0;
+  font-family: "Birpe Rounded", Arial, sans-serif;
+  font-size: clamp(1.75rem, 1rem + 3cqw, 3.25rem);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #142033;
 }
 
-/* The scroll cue is a light liquid-glass pill; .liquid-glass owns its surface. */
-[data-slipstream-demo] [data-gp-enter] {
-  min-height: 48px;
+[data-hero-line] {
+  margin: 0;
+  font-size: clamp(1rem, 0.9rem + 0.5cqw, 1.25rem);
+  line-height: 1.4;
+}
+
+[data-waitlist] {
+  width: 100%;
+}
+
+[data-waitlist-row] {
+  display: flex;
+  gap: 8px;
+}
+
+[data-waitlist] input[name="email"] {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  padding: 0 18px;
+  border: 1px solid #6b7587;
+  /* Beats the global square-corner reset for form fields. */
+  border-radius: 999px !important;
+  background: #fff;
+  /* 16px stops iPhones zooming the page when the field is focused. */
+  font-size: 16px;
+  color: #142033;
+}
+
+[data-waitlist] input[name="email"]::placeholder {
+  color: #5b6472;
+}
+
+[data-waitlist] input[name="email"]:focus-visible {
+  outline: 2px solid #1859d5;
+  outline-offset: 1px;
+}
+
+[data-waitlist-trap] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none !important;
+}
+
+[data-waitlist] button {
+  flex: none;
+  height: 48px;
   padding: 0 22px;
-  gap: 30px;
+  border: 0;
+  border-radius: 999px !important;
+  background: #1859d5;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+[data-waitlist] button:hover:not(:disabled) {
+  background: #1349b3;
+}
+
+[data-waitlist] button:disabled {
+  background: #4a6fb5;
+  cursor: progress;
+}
+
+[data-waitlist] button:focus-visible {
+  outline: 2px solid #142033;
+  outline-offset: 2px;
+}
+
+[data-waitlist-note] {
+  margin: 6px 0 0 4px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #3f4a5c;
+}
+
+[data-waitlist-note][data-error] {
+  font-weight: 600;
+  color: #a4161a;
+}
+
+[data-waitlist-done] {
+  margin: 0;
+  padding: 12px 18px;
+  border-radius: 16px;
+  background: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  color: #123f8f;
+}
+
+[data-hero-cue] {
+  min-height: 44px;
+  padding: 0 18px;
+  gap: 18px;
   font-family: "Birpe Rounded", Arial, sans-serif;
   font-size: 14px;
   font-weight: 500;
 }
 
-[data-slipstream-demo] [data-gp-enter]:focus-visible {
-  outline: 2px solid #276cf5;
-  outline-offset: 4px;
-}
-
-/* Phones can tap a letter directly; a dropdown here would sit on top of the tree. */
-[data-slipstream-demo] [data-gp-touch-picker] {
-  display: none !important;
-}
-
-[data-sublime-header] {
-  position: absolute;
-  top: max(16px, env(safe-area-inset-top));
-  left: var(--gp-word-left, 16px);
-  right: max(var(--gp-word-left, 16px), env(safe-area-inset-right));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: clamp(12px, 3cqw, 24px);
-}
-
-[data-sublime-category] {
-  /* Stays at the right once the logo has flown. */
-  margin-left: auto;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #123f8f;
-}
-
-.bird-guide {
-  display: block;
-  background: none;
-  border: 0;
-  padding: 8px;
-  margin: -8px;
-  cursor: pointer;
-  transform: translate(var(--bird-x, 0px), var(--bird-y, 0px));
-  transition: transform 0.5s ease-out;
-}
-
-.bird-guide:focus-visible {
-  outline: 2px solid #276cf5;
-  outline-offset: 5px;
+#how-it-works {
+  scroll-margin-top: 24px;
 }
 
 .header-bird {
@@ -109,6 +264,11 @@
   max-width: none;
   left: -17.4%;
   top: -48.7%;
+}
+
+/* Fades in with the copy, and keeps white text readable even under the aurora's brightest light. */
+[data-slipstream-demo] [data-gp-motion="on"] [data-gp-content] {
+  background: rgba(11, 38, 130, 0.5) !important;
 }
 
 [data-slipstream-demo] [data-gp-content] {
@@ -173,7 +333,7 @@
 
 [data-slipstream-feature] p {
   margin: 0.55rem 0 0;
-  color: rgba(251, 251, 250, 0.85);
+  color: #fff;
   font-size: 16px;
   line-height: 1.65;
 }
@@ -181,25 +341,15 @@
 [data-slipstream-no] {
   display: inline-block;
   margin-right: 0.7rem;
-  color: rgba(251, 251, 250, 0.85);
+  color: #fff;
   font: 500 0.75rem ui-monospace, monospace;
   letter-spacing: 0.08em;
   transform: translateY(-0.1em);
 }
 
-@media (max-width: 480px) {
-  [data-sublime-category] {
-    font-size: 12px;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   [data-demo-scroll] {
     scroll-behavior: auto;
-  }
-
-  .bird-guide {
-    transform: none !important;
   }
 }
 
@@ -209,13 +359,84 @@
   }
 }
 
-@container (max-height: 479px) {
-  [data-sublime-header] {
-    top: max(12px, env(safe-area-inset-top));
+/* Too narrow for the top bar's full label or the form on one line. */
+@container (max-width: 380px) {
+  [data-hero-link] {
+    padding: 0 4px;
+    font-size: 14px;
   }
 
-  [data-slipstream-demo] [data-gp-caption] {
-    top: min(calc(var(--gp-word-bottom, 50%) + 12px), calc(100% - 64px));
+  [data-hero-cta] {
+    padding: 0 14px;
+    font-size: 14px;
+  }
+}
+
+@container (max-width: 340px) {
+  [data-hero-nav] {
+    grid-template-columns: auto 1fr auto;
+    gap: 6px;
+  }
+
+  [data-hero-link] {
+    padding: 0 2px;
+    font-size: 13px;
+  }
+
+  [data-hero-cta] {
+    padding: 0 12px;
+    font-size: 13px;
+  }
+}
+
+@container (max-width: 360px) {
+  [data-waitlist-row] {
+    flex-wrap: wrap;
+  }
+
+  [data-waitlist] input[name="email"] {
+    flex-basis: 100%;
+  }
+
+  [data-waitlist] button {
+    flex: 1;
+  }
+}
+
+/* Short screens, like a phone on its side: drop what the opening can live without. */
+@container (max-height: 479px) {
+  [data-hero-label] {
+    display: none;
+  }
+
+  /* !important beats .liquid-glass, which owns its own display. */
+  [data-hero-cue] {
+    display: none !important;
+  }
+
+  [data-hero-copy] h1 {
+    font-size: 1.5rem;
+  }
+
+  [data-hero-line] {
+    font-size: 0.9375rem;
+  }
+
+  [data-waitlist] input[name="email"],
+  [data-waitlist] button {
+    height: 44px;
+  }
+
+  [data-waitlist-note] {
+    margin-top: 4px;
+    font-size: 12px;
+  }
+}
+
+/* A short phone held upright: the scroll link gives way before it runs into the tree. */
+@container (max-height: 600px) and (max-width: 519px) {
+  [data-hero-cue] {
+    display: none !important;
   }
 }
 

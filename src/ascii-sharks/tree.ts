@@ -179,8 +179,9 @@ export class CornerTree {
     this.leafSpots = [];
     this.perches = [];
     this.leaves = [];
-    // Upright screens are narrow, so the tree can take more of their width; on a tablet that would run into the word.
-    const T = Math.min(H * 0.52, W * (W >= H ? 0.36 : W < 520 ? 0.55 : 0.46));
+    // Upright screens are narrow, so the tree can take more of their width; on a tablet that would run
+    // into the word, and on a short phone into the sign-up form above it.
+    const T = W >= H ? Math.min(H * 0.52, W * 0.36) : W < 520 ? Math.min(W * 0.55, Math.max(96, (H - 420) * 0.72)) : Math.min(H * 0.52, W * 0.46);
     const baseX = W - T * 0.36;
     const baseY = H - ch * 1.5;
     this.baseY = baseY;

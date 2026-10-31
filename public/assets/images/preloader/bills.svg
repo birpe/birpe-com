@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="768" viewBox="0 0 512 768">
+<rect width="512" height="768" fill="#e5eeff"/>
+<g fill="#015bea" font-family="Arial, sans-serif">
+<text x="36" y="51" font-size="15" letter-spacing="2">BIRPE / BILLS</text>
+<text x="476" y="51" text-anchor="end" font-size="15">03</text>
+<text x="36" y="131" font-size="42" letter-spacing="-2">All taken care of.</text>
+<text x="36" y="165" font-size="18" opacity=".65">Less admin. More living.</text>
+
+<g transform="rotate(8 256 420)"><rect x="100" y="244" width="312" height="338" rx="16" fill="#3b9bfc"/></g>
+<g transform="rotate(-5 256 420)"><rect x="89" y="236" width="334" height="350" rx="16" fill="#ffffff"/>
+<text x="116" y="283" font-size="14" letter-spacing="2" opacity=".6">THIS MONTH</text>
+<text x="116" y="344" font-size="48" letter-spacing="-2">All clear.</text>
+<path d="M116 374H394" stroke="#015bea" opacity=".15"/>
+<g font-size="19"><text x="116" y="418">Electricity</text><text x="116" y="471">Internet</text><text x="116" y="524">Phone</text></g>
+<g fill="#e0eadc"><circle cx="375" cy="412" r="15"/><circle cx="375" cy="465" r="15"/><circle cx="375" cy="518" r="15"/></g>
+<g fill="none" stroke="#3b633e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m369 412 4 4 8-9"/><path d="m369 465 4 4 8-9"/><path d="m369 518 4 4 8-9"/></g>
+</g>
+<path d="M36 679H476" stroke="#015bea" opacity=".2"/>
+<text x="36" y="720" font-size="16">A shorter to-do list looks good.</text>
+<path d="m443 711 8 8 18-20" fill="none" stroke="#015bea" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</g></svg>

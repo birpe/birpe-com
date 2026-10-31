@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="768" viewBox="0 0 512 768">
+<rect width="512" height="768" fill="#e8e0f5"/>
+<g fill="#493778" font-family="Arial, sans-serif">
+<text x="36" y="51" font-size="15" letter-spacing="2">BIRPE / CALLS</text>
+<text x="476" y="51" text-anchor="end" font-size="15">04</text>
+<text x="36" y="131" font-size="42" letter-spacing="-2">Skip the hold music.</text>
+<text x="36" y="165" font-size="18" opacity=".65">We’ll take it from here.</text>
+
+<rect x="62" y="260" width="388" height="308" rx="20" fill="#faf7ff"/>
+<circle cx="107" cy="307" r="20" fill="#e8e0f5"/>
+<path d="M99 299c-3 4 0 10 4 14s10 7 14 4l-5-6-4 2-5-5 2-4Z" fill="#6551a6"/>
+<text x="141" y="305" font-size="18">Your appointment</text>
+<text x="141" y="329" font-size="14" opacity=".6">Call completed · 02:14</text>
+<path d="M86 355H426" stroke="#493778" opacity=".12"/>
+<rect x="109" y="426.0" width="6" height="12" rx="3" fill="#6551a6"/><rect x="122" y="420.0" width="6" height="24" rx="3" fill="#6551a6"/><rect x="135" y="414.0" width="6" height="36" rx="3" fill="#6551a6"/><rect x="148" y="423.0" width="6" height="18" rx="3" fill="#6551a6"/><rect x="161" y="408.0" width="6" height="48" rx="3" fill="#6551a6"/><rect x="174" y="396.0" width="6" height="72" rx="3" fill="#6551a6"/><rect x="187" y="406.0" width="6" height="52" rx="3" fill="#6551a6"/><rect x="200" y="418.0" width="6" height="28" rx="3" fill="#6551a6"/><rect x="213" y="401.5" width="6" height="61" rx="3" fill="#6551a6"/><rect x="226" y="387.0" width="6" height="90" rx="3" fill="#6551a6"/><rect x="239" y="397.0" width="6" height="70" rx="3" fill="#6551a6"/><rect x="252" y="413.0" width="6" height="38" rx="3" fill="#6551a6"/><rect x="265" y="422.0" width="6" height="20" rx="3" fill="#6551a6"/><rect x="278" y="410.0" width="6" height="44" rx="3" fill="#6551a6"/><rect x="291" y="399.0" width="6" height="66" rx="3" fill="#6551a6"/><rect x="304" y="413.0" width="6" height="38" rx="3" fill="#6551a6"/><rect x="317" y="423.0" width="6" height="18" rx="3" fill="#6551a6"/><rect x="330" y="416.0" width="6" height="32" rx="3" fill="#6551a6"/><rect x="343" y="425.0" width="6" height="14" rx="3" fill="#6551a6"/><rect x="356" y="421.0" width="6" height="22" rx="3" fill="#6551a6"/><rect x="369" y="427.0" width="6" height="10" rx="3" fill="#6551a6"/><rect x="382" y="423.0" width="6" height="18" rx="3" fill="#6551a6"/><rect x="395" y="426.0" width="6" height="12" rx="3" fill="#6551a6"/>
+<rect x="86" y="505" width="340" height="38" rx="19" fill="#e8e0f5"/>
+<text x="256" y="530" text-anchor="middle" font-size="15">Rescheduled. You’re all set.</text>
+
+<path d="M36 679H476" stroke="#493778" opacity=".2"/>
+<text x="36" y="720" font-size="16">Your time belongs to you.</text>
+<path d="m443 711 8 8 18-20" fill="none" stroke="#493778" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</g></svg>

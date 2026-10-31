@@ -1,0 +1,50 @@
+/* Each track contains two identical groups so a half-length shift loops cleanly. */
+.motion-marquee-track,
+.motion-hero-row,
+.motion-column {
+  animation-duration: var(--motion-duration, 30s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: var(--motion-direction, normal);
+  animation-play-state: paused;
+}
+
+.motion-marquee-track,
+.motion-hero-row {
+  display: flex;
+  width: max-content;
+  animation-name: motion-row;
+}
+
+.motion-column {
+  display: flex;
+  flex-direction: column;
+  height: max-content;
+  animation-name: motion-column;
+}
+
+[data-motion-ready='true'] :is(.motion-marquee-track, .motion-hero-row, .motion-column) {
+  animation-play-state: running;
+  will-change: transform;
+}
+
+@keyframes motion-row {
+  to { transform: translateX(-50%); }
+}
+
+@keyframes motion-column {
+  to { transform: translateY(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-marquee-track,
+  .motion-hero-row,
+  .motion-column {
+    animation: none;
+    will-change: auto;
+  }
+
+  [data-motion-ready='true'] :is(.motion-marquee-track, .motion-hero-row, .motion-column) {
+    will-change: auto;
+  }
+}

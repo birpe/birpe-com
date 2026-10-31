@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="768" viewBox="0 0 512 768">
+<rect width="512" height="768" fill="#e5eeff"/>
+<g fill="#144bce" font-family="Arial, sans-serif">
+<text x="36" y="51" font-size="15" letter-spacing="2">BIRPE / REFUNDS</text>
+<text x="476" y="51" text-anchor="end" font-size="15">01</text>
+<text x="36" y="131" font-size="42" letter-spacing="-2">Back in your pocket.</text>
+<text x="36" y="165" font-size="18" opacity=".65">The follow-up? Already handled.</text>
+
+<g transform="translate(104 225) rotate(-6 152 200)">
+<path d="M0 0H304V378L285 366 266 378 247 366 228 378 209 366 190 378 171 366 152 378 133 366 114 378 95 366 76 378 57 366 38 378 19 366 0 378Z" fill="#fff"/>
+<circle cx="152" cy="64" r="25" fill="#e5eeff"/>
+<path d="m142 64 7 7 14-16" fill="none" stroke="#144bce" stroke-width="3" stroke-linecap="round"/>
+<text x="152" y="126" text-anchor="middle" font-size="15" letter-spacing="2">REFUND RECEIVED</text>
+<text x="152" y="195" text-anchor="middle" font-size="65" letter-spacing="-3">₹2,499</text>
+<path d="M32 230H272" stroke="#144bce" opacity=".2" stroke-dasharray="5 5"/>
+<text x="32" y="274" font-size="17" opacity=".55">Status</text>
+<text x="272" y="274" text-anchor="end" font-size="17">Completed</text>
+<rect x="32" y="310" width="100" height="7" rx="3.5" fill="#e5eeff"/>
+<rect x="32" y="329" width="65" height="7" rx="3.5" fill="#e5eeff"/>
+</g>
+<path d="M36 679H476" stroke="#144bce" opacity=".2"/>
+<text x="36" y="720" font-size="16">One less thing to chase.</text>
+<path d="m443 711 8 8 18-20" fill="none" stroke="#144bce" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</g></svg>

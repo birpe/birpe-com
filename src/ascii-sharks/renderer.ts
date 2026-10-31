@@ -40,10 +40,16 @@ export interface OceanTheme {
   skin?: SharkSkin;
   /** Grid cell width in CSS px. Smaller cells draw sharks in more detail; omit to size from the canvas width. */
   cell?: number;
-  /** Colour of the sparks where a fish is caught; omit for the original orange and red. */
+  /** Colour of the sparks where a fish is caught; omit for the logo blue shades. */
   heat?: [number, number, number];
   /** Draw an ASCII tree in the bottom-right corner. */
   tree?: boolean;
+  /** How many fish; omit to fill the sky according to its size. */
+  fishCount?: number;
+  /** Where the fish like to stay, as fractions of the sky's width and height; omit to let them roam. */
+  fishHome?: [number, number];
+  /** Scales how strongly the fish show, from 0 to 1; omit for full strength. */
+  fishStrength?: number;
 }
 
 /**
@@ -82,6 +88,9 @@ export const BIRPE_THEME: OceanTheme = {
   cell: 9,
   heat: [39, 108, 245],
   tree: true,
+  fishCount: 26,
+  fishHome: [0.74, 0.62],
+  fishStrength: 0.55,
 };
 
 /** Light grey water with graphite fish and a slate-blue wake. */
@@ -92,7 +101,7 @@ export const GREY_THEME: OceanTheme = {
   wake: [58, 104, 168],
 };
 
-const ACCENTS = ["#e0892c", "#e03a32", "#b44ae0", "#33c8cc", "#3cb54a", "#3150e8", "#d9c14a"];
+const ACCENTS = ["#0780fd", "#e03a32", "#b44ae0", "#33c8cc", "#3cb54a", "#3150e8", "#d9c14a"];
 
 // Sparse glyphs on bright skin, dense glyphs in shadow, so the texture
 // reinforces the shading instead of fighting it.
@@ -406,8 +415,6 @@ export class AsciiRenderer {
   /** Fish cells bucketed by brightness, so each bucket is one fillStyle. */
   private fishBuckets: number[][] = FISH_ALPHAS.map(() => []);
   private fishStyles: string[];
-  /** Painted over everything else in the sky while it's set. */
-  overlay: ((ctx: CanvasRenderingContext2D) => void) | null = null;
 
   constructor(private canvas: HTMLCanvasElement, private theme: OceanTheme = DARK_THEME) {
     const ctx = canvas.getContext("2d", { alpha: false });
@@ -419,7 +426,7 @@ export class AsciiRenderer {
     const skyCtx = this.sky.getContext("2d", { alpha: false });
     if (!skyCtx) throw new Error("2D canvas unavailable");
     this.skyCtx = skyCtx;
-    this.fishStyles = FISH_ALPHAS.map((a) => `rgba(${theme.fish.join(",")},${a})`);
+    this.fishStyles = FISH_ALPHAS.map((a) => `rgba(${theme.fish.join(",")},${a * (theme.fishStrength ?? 1)})`);
 
     for (let c = 0; c < DOT_RGB.length; c++) {
       const [r, g, b] = c === WAKE ? theme.wake : DOT_RGB[c];
@@ -552,10 +559,7 @@ export class AsciiRenderer {
     this.drawFish();
     if (this.theme.tree) this.tree.drawLeaves(ctx, t, dt);
     this.drawSharks(t);
-    // Farther birds first, so one turning in front passes over the other.
-    const birds = world.sharks.filter((sh) => sh.bird && sh.bird.mode !== "parked").sort((a, b) => b.bird!.z - a.bird!.z);
-    for (const sh of birds) drawBird(ctx, sh, this.cw, this.ch);
-    this.overlay?.(ctx);
+    for (const sh of world.sharks) if (sh.bird && sh.bird.mode !== "parked") drawBird(ctx, sh, this.cw, this.ch);
   }
 
   // ── simulation → field ──────────────────────────────────────────────
@@ -1062,7 +1066,7 @@ export class AsciiRenderer {
       const spark = this.theme.heat;
       ctx.fillStyle = spark
         ? `rgba(${spark.join(",")},${Math.min(1, h * 1.3).toFixed(2)})`
-        : h > 0.5 ? `rgba(255,120,60,${h.toFixed(2)})` : `rgba(220,40,40,${(h * 1.6).toFixed(2)})`;
+        : h > 0.5 ? `rgba(7,128,253,${h.toFixed(2)})` : `rgba(1,91,234,${(h * 1.6).toFixed(2)})`;
       ctx.fillText(h > 0.6 ? "*" : "·", col * cw + cw / 2, row * ch + ch / 2 + 1);
     }
   }

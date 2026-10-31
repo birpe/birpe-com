@@ -1,56 +1,125 @@
 @import 'tailwindcss';
+@import './motion.css';
 
-/* Aurora lights: a slow transform-only drift, timed per light inline. */
-@theme{
- --animate-aurora:aurora 20s ease-in-out infinite;
- @keyframes aurora{
-  0%,100%{transform:translate3d(0,0,0) scale(1)}
-  33%{transform:translate3d(28%,18%,0) scale(1.2)}
-  66%{transform:translate3d(-14%,32%,0) scale(.9)}
- }
+@font-face {
+  font-family: 'SF Pro Display';
+  src: local('SF Pro Display Regular'), local('SFProDisplay-Regular');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
 }
-:root{font-family:Arial,sans-serif;color:#142033;background:#fff}*{box-sizing:border-box}body{margin:0}button,a,select{-webkit-tap-highlight-color:transparent}button,select{border-radius:0!important}
 
-/* Liquid glass controls: distortion, tint and edge-light live on separate layers. */
-.liquid-glass-filter{position:absolute;width:0;height:0;pointer-events:none}
-.liquid-glass{
- position:relative;
- isolation:isolate;
- display:inline-flex;
- align-items:center;
- min-height:50px;
- padding:0 24px;
- overflow:hidden;
- border:0!important;
- border-radius:999px!important;
- background:transparent!important;
- text-decoration:none;
- box-shadow:0 10px 28px rgba(12,42,82,.12),0 1px 2px rgba(12,42,82,.08)!important;
- transition:box-shadow .2s ease,transform .2s ease!important;
+@font-face {
+  font-family: 'SF Pro Display';
+  src: local('SF Pro Display Medium'), local('SFProDisplay-Medium');
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
 }
-.liquid-glass__distortion,.liquid-glass__tint,.liquid-glass__shine{position:absolute;inset:0;border-radius:inherit;pointer-events:none}
-.liquid-glass__distortion{
- z-index:0;
- /* Prefixed first: the other way round, the minifier drops the unprefixed one that Chrome needs. */
- -webkit-backdrop-filter:blur(5px) saturate(112%);
- backdrop-filter:blur(5px) saturate(112%);
- /* Backdrop blur and edge highlights avoid a second SVG filter render pass. */
-}
-.liquid-glass__tint{z-index:1;background:rgba(255,255,255,.08)}
-.liquid-glass__shine{
- z-index:2;
- border:1px solid rgba(255,255,255,.38);
- box-shadow:inset 0 1px 0 rgba(255,255,255,.48),inset 0 -1px 0 rgba(255,255,255,.12);
-}
-.liquid-glass__content{position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:clamp(12px,3vw,24px);width:100%;font-weight:500}
-.liquid-glass:hover{box-shadow:0 14px 32px rgba(12,42,82,.15),0 2px 3px rgba(12,42,82,.08)!important;transform:translateY(-2px)}
-.liquid-glass:active{transform:scale(.97)}
-.liquid-glass--light{color:#142033!important}
-.liquid-glass--dark{color:#fff}
-@media(prefers-reduced-motion:reduce){.liquid-glass{transition:none!important;transform:none!important}}
 
-/* Cloud backdrop. */
-.cloudscape{position:relative;display:flex;width:100%;align-items:center;justify-content:center;overflow:hidden}
-.cloudscape__canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;transition:opacity .45s ease}
-.hero-sky{position:absolute;inset:0;pointer-events:none;opacity:var(--gp-caption,1)}
+/* Reference design widths: 1728 desktop, 852 tablet, 390 phone. */
+html {
+  --user-zoom: 1;
+  scroll-behavior: auto;
+  font-size: calc(.9259259259vw * var(--user-zoom));
+}
 
+:root {
+  --brand-blue: #0780fd;
+  --brand-blue-light: #3b9bfc;
+  /* White text only passes contrast on the deep blue, so filled controls use it. */
+  --brand-blue-deep: #0353e3;
+  --brand-blue-night: #0a2a8c;
+  --bg: #fff;
+  --surface: #fff;
+  --panel: #f7f7f7;
+  --line: color-mix(in srgb, var(--fg) 16%, transparent);
+  /* Apple's licence rules out self-hosting SF, so Apple devices get it from the system. */
+  --font-display: 'SF Pro Display', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font: var(--font-display);
+  --fg: #020108;
+  --display: 7.5rem;
+  --h1: 5.5rem;
+  --h2-5: 4rem;
+  --h3: 3.25rem;
+  --h4: 2.25rem;
+  --title-3: 1.5rem;
+  --body-3: 1.25rem;
+  --tag: 1.125rem;
+  --body-1: 1.125rem;
+  --btn: 1.0625rem;
+  --body-2: 1rem;
+  --title-1: 1rem;
+  --title-2: .875rem;
+  --small-1: .75rem;
+  --small-2: .625rem;
+  --section-column: 28.5rem;
+  --gutter: 2rem;
+  --section-space: 10rem;
+
+  font-family: var(--font);
+  font-synthesis: none;
+  color: var(--fg);
+  background: var(--bg);
+}
+
+html[data-theme='dark'] {
+  --fg: #f2f5fc;
+  --bg: #060c20;
+  --surface: #111c3d;
+  --panel: #0c1530;
+  color-scheme: dark;
+}
+
+@media (max-width: 991px) {
+  html { font-size: calc(1.8779342723vw * var(--user-zoom)); }
+  :root { --display: 5.5rem; --h1: 4.5rem; }
+}
+
+@media (max-width: 767px) {
+  html { font-size: calc(4.1025641026vw * var(--user-zoom)); }
+  :root {
+    --display: 2.25rem;
+    --h1: 2.5rem;
+    --h2-5: 2.25rem;
+    --h3: 1.5rem;
+    --h4: 2rem;
+    --body-1: 1rem;
+    --body-2: .875rem;
+  }
+}
+
+.u-h2 { font: 400 var(--display)/1 var(--font); letter-spacing: -.225rem; }
+.u-h1 { font: 400 var(--h1)/.94 var(--font); letter-spacing: -.165rem; }
+.u-h2-5 { font: 400 var(--h2-5)/1 var(--font); letter-spacing: -.12rem; }
+.u-h3 { font: 500 var(--h3)/1.05 var(--font); letter-spacing: -.1rem; }
+.u-h4 { font: 500 var(--h4)/1.2 var(--font); letter-spacing: -.027rem; }
+.u-title-3 { font: 500 var(--title-3)/1.5 var(--font); letter-spacing: -.013rem; }
+.u-body-3 { font: 500 var(--body-3)/1.25 var(--font); letter-spacing: normal; }
+.u-tag { font: 400 var(--tag)/1.5 var(--font); letter-spacing: normal; }
+.u-body { font: 400 var(--body-1)/1.4 var(--font); letter-spacing: normal; }
+.u-btn { font: 400 var(--btn)/1.2 var(--font); letter-spacing: -.021rem; }
+.u-body-2 { font: 400 var(--body-2)/1.25 var(--font); letter-spacing: normal; }
+.u-title { font: 500 var(--title-1)/1.5 var(--font); letter-spacing: -.015rem; }
+.u-title-s { font: 500 var(--title-2)/1.5 var(--font); letter-spacing: -.013rem; }
+.u-small-1 { font: 400 var(--small-1)/1.5 var(--font); letter-spacing: -.0075rem; }
+.u-small { font: 500 var(--small-2)/1 var(--font); letter-spacing: -.0125rem; text-transform: uppercase; }
+.u-fg-100 { color: var(--fg); }
+.u-fg-64 { color: color-mix(in srgb, var(--fg) 64%, transparent); }
+.u-fg-50 { color: color-mix(in srgb, var(--fg) 50%, transparent); }
+@media (max-width: 767px) { .u-h1, .u-h2, .u-h2-5, .u-h3 { letter-spacing: -.02em; } }
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button, input, textarea, select { font-family: inherit; }
+
+#root,
+main {
+  min-height: 100svh;
+}
