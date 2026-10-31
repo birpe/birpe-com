@@ -235,7 +235,7 @@ html[data-large-zoom] [data-waitlist-row] { flex-direction: column; }
   .app-frame { padding: 1rem; gap: 1rem; border-radius: 1.5rem; }
   .app-frame-thumbs { gap: .5rem; }
   .app-thumb img { padding: .375rem; border-radius: .5rem; aspect-ratio: 1; }
-  .app-thumb span { font-size: max(.6rem, 10px); }
+  .app-thumb span { font-size: max(.6rem, 12px * var(--user-zoom)); }
   .context-document { padding: 1rem; border-radius: 1rem; }
   .how-left { gap: 1.5rem; padding: 1.5rem 1rem; }
   .how-actions { height: 14rem; }
