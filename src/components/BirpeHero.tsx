@@ -178,7 +178,7 @@ export default function BirpeHero() {
 
       <section id="top" className="hero-opening" aria-labelledby="hero-title">
         <div className="hero-lead" data-intro data-hero-delayed>
-          <p className="u-h2-5">Tell Birpe what needs doing. It chases the refund, makes the booking, sorts the bill and takes the call.</p>
+          <p className="u-h4">Tell Birpe what needs doing. It chases the refund, makes the booking, sorts the bill and takes the call.</p>
           <a className="hero-scroll u-btn" href="#what-birpe-does">See what it does <span aria-hidden="true">↓</span></a>
         </div>
         <div className="hero-board">

@@ -47,11 +47,11 @@
 /* The faint ring only shows over blue slides, where the pill would otherwise vanish. */
 .hero-header .btn-pill { justify-self: end; box-shadow: 0 0 0 1px color-mix(in srgb, #fff 40%, transparent); }
 
-.hero-opening { position: relative; display: flex; flex-direction: column; gap: 2rem; padding: 7rem 2rem 2rem; overflow: clip; }
+.hero-opening { position: relative; display: flex; flex-direction: column; gap: 2rem; padding: 6rem 2rem 2rem; overflow: clip; }
 .hero-lead { display: flex; align-items: flex-end; justify-content: space-between; gap: 3rem; }
 .hero-lead > p { max-width: 62rem; text-wrap: pretty; }
 /* Height caps the width on short screens so the word still fits the first screen. The container lets the tagline scale with the word. */
-.hero-board { position: relative; width: min(100%, calc((100svh - 23rem) * 27 / 9)); container-type: inline-size; }
+.hero-board { position: relative; width: min(72%, calc((100svh - 17rem) * 27 / 9)); container-type: inline-size; }
 /* Sits in the word's bottom two rows, left of the p's descender. */
 .hero-shell .hero-tagline { position: absolute; left: 0; top: calc(100% * 7 / 9); display: flex; align-items: center; column-gap: .25em; height: calc(100% * 2 / 9); font-size: 6cqw; white-space: nowrap; }
 .hero-word { display: inline-block; max-width: 100%; }
@@ -192,7 +192,7 @@ html[data-large-zoom] [data-waitlist-row] { flex-direction: column; }
   .hero-shell .hero-tagline { position: static; height: auto; margin-top: 1rem; font-size: 9.6cqw; }
   .section-grid, .steps-intro, .waitlist-section { grid-template-columns: minmax(0, 1fr); }
   .waitlist-section { gap: 2rem; padding: 2rem; border-radius: 2rem; }
-  .hero-board { width: 100%; }
+  .hero-board { width: 80%; }
   .feature-cards, .feature-preview { grid-template-columns: minmax(0, 1fr); }
   .hero-shell .section-tag { padding-bottom: 1rem; }
   .hero-shell .section-headline { padding-top: 0; }
@@ -217,6 +217,8 @@ html[data-large-zoom] [data-waitlist-row] { flex-direction: column; }
   .hero-header .btn-pill { padding: .75rem 1rem; }
   .hero-opening { gap: 1.5rem; padding: 5rem 1rem 1.5rem; }
   .hero-lead { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .hero-board { width: 100%; }
+  .hero-lead > p { font-size: 1.5rem; }
   .section-grid, .feature-cards, .steps-intro, .step-info { grid-template-columns: minmax(0, 1fr); }
   .steps-intro { gap: .75rem; padding: 0 1rem 1.5rem; }
   .hero-shell .section-tag, .hero-shell .section-headline { padding-inline: 1rem; }
